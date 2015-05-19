@@ -17,7 +17,7 @@ class CmeBrand
     $result = CmeDatabase::conn()->select(
       "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
     );
-    return ($result)? true : false;
+    return ($result) ? true : false;
   }
 
   /**
@@ -65,6 +65,13 @@ class CmeBrand
     }
 
     return $return;
+  }
+
+  public function getColumns()
+  {
+    return CmeDatabase::schema()->getColumnListing(
+      $this->_tableName
+    );
   }
 
   /**
