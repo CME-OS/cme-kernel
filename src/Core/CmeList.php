@@ -20,7 +20,7 @@ class CmeList
     $result = CmeDatabase::conn()->select(
       "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
     );
-    return ($result)? true : false;
+    return ($result) ? true : false;
   }
 
   /**
@@ -78,6 +78,21 @@ class CmeList
     }
 
     return $return;
+  }
+
+  /**
+   * @return ListData;
+   * @throws \Exception
+   */
+  public function any()
+  {
+    $row = head(
+      CmeDatabase::conn()->select(
+        "SELECT * FROM " . $this->_tableName . " LIMIT 1"
+      )
+    );
+
+    return CmeDatabase::hydrate(new ListData(), $row);
   }
 
   /**
@@ -172,10 +187,10 @@ class CmeList
    */
   public function getSubscriber($subscriberId, $listId)
   {
-    $data  = false;
+    $data = false;
     if($listId && $subscriberId)
     {
-      $table = ListHelper::getTable($listId);
+      $table  = ListHelper::getTable($listId);
       $result = CmeDatabase::conn()
         ->table($table)
         ->where(['id' => $subscriberId])
@@ -188,7 +203,6 @@ class CmeList
          */
         $data = CmeDatabase::hydrate(new SubscriberData(), head($result));
       }
-
     }
 
     return $data;
@@ -245,6 +259,13 @@ class CmeList
     }
 
     return $deleted;
+  }
+
+  public function getColumns($listId)
+  {
+    return CmeDatabase::schema()->getColumnListing(
+      ListHelper::getTable($listId)
+    );
   }
 
   public function import(ListImportQueueData $data)
