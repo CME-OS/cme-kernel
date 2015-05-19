@@ -66,7 +66,16 @@ class CmeCampaign
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new CampaignData(), $row);
+      /**
+       * @var $campaign CampaignData
+       */
+      $campaign               = CmeDatabase::hydrate(new CampaignData(), $row);
+      $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
+      $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
+      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+        $campaign->smtpProviderId
+      );
+      $return[]               = $campaign;
     }
 
     return $return;
