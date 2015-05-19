@@ -8,9 +8,9 @@
 include_once 'vendor/autoload.php';
 use CmeKernel\Core\CmeKernel;
 
-$initData           = new \CmeKernel\Data\InitData();
+$initData             = new \CmeKernel\Data\InitData();
 $initData->dbHost     = 'localhost';
-$initData->dbName = 'cme';
+$initData->dbName     = 'cme';
 $initData->dbUsername = 'root';
 $initData->dbPassword = '';
 CmeKernel::init($initData);

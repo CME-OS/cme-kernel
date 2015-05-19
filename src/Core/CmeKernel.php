@@ -9,16 +9,9 @@ use CmeKernel\Data\InitData;
 
 class CmeKernel
 {
-  private static $_initData;
-
   public static function init(InitData $data)
   {
     CmeDatabase::init($data);
-  }
-
-  public static function getInit()
-  {
-    return self::$_initData;
   }
 
   public static function Campaign()
