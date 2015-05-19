@@ -27,6 +27,6 @@ class MessageQueueData extends Data
    */
   public $status;
   public $sendTime;
-  public $sentPriority;
+  public $sendPriority;
   public $lockedBy;
 }
