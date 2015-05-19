@@ -102,11 +102,11 @@ class CmeCampaign
   public function create(CampaignData $data)
   {
     $data->created = time();
-    CmeDatabase::conn()->table($this->_tableName)->insert(
+    $result        = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
       CmeDatabase::dataToArray($data)
     );
 
-    return true;
+    return $result;
   }
 
   /**
