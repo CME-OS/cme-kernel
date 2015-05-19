@@ -1,17 +1,16 @@
 {
   "name":        "cme/cme-kernel",
-  "description": "CME Kernel",
+  "description": "CME (Campaigns Made Easy) Kernel",
   "authors":     [
     {
-      "name":  "Okechukwu",
+      "name":  "Okechukwu Ugwu",
       "email": "fobilow@gmail.com"
     }
   ],
   "require":     {
-    "illuminate/database":   "*",
-    "illuminate/encryption": "5.0.28",
-    "illuminate/log":        "5.0.28",
-    "doctrine/dbal":         "~2.4"
+    "illuminate/database":   "4.2.*",
+    "illuminate/encryption": "4.2.*",
+    "illuminate/log":        "4.2.*"
   },
   "autoload":    {
     "psr-4": {
