@@ -1,0 +1,21 @@
+{
+  "name":        "cme/cme-kernel",
+  "description": "CME Kernel",
+  "authors":     [
+    {
+      "name":  "Okechukwu",
+      "email": "fobilow@gmail.com"
+    }
+  ],
+  "require":     {
+    "illuminate/database":   "*",
+    "illuminate/encryption": "5.0.28",
+    "illuminate/log":        "5.0.28",
+    "doctrine/dbal":         "~2.4"
+  },
+  "autoload":    {
+    "psr-4": {
+      "CmeKernel\\": "src/"
+    }
+  }
+}
