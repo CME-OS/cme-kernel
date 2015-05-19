@@ -19,8 +19,7 @@ class SchemaHelper
         "SHOW COLUMNS FROM `$table`"
       );
     }
-
-    return self::$_columns;
+    return json_decode(json_encode(self::$_columns));
   }
 
   public static function getColumnNames($table)

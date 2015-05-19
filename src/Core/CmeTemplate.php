@@ -18,7 +18,7 @@ class CmeTemplate
     $result = CmeDatabase::conn()->select(
       "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
     );
-    return ($result)? true : false;
+    return ($result) ? true : false;
   }
 
   /**
@@ -66,6 +66,13 @@ class CmeTemplate
     }
 
     return $return;
+  }
+
+  public function getKeyedListFor($field)
+  {
+    return CmeDatabase::conn()->table($this->_tableName)
+      ->whereNull('deleted_at')
+      ->orderBy('id', 'asc')->lists($field, 'id');
   }
 
   /**
