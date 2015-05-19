@@ -139,6 +139,6 @@ class ListHelper
       )
     );
 
-    return $count->count;
+    return $count['count'];
   }
 }

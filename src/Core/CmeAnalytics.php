@@ -16,12 +16,12 @@ class CmeAnalytics
    *
    * @return array
    */
-  public function getLastXOfEvent($eventType, $campaignId, $limit)
+  public function getLastXOfEvent($eventType, $campaignId, $limit = 10)
   {
-    $campaign  = CMECampaign::get($campaignId);
+    $campaign  = CmeKernel::Campaign()->get($campaignId);
     $listTable = ListHelper::getTable($campaign->listId);
 
-    $subscribers = DB::select(
+    $subscribers = CmeDatabase::conn()->select(
       "SELECT subscriber_id, time FROM campaign_events
       WHERE campaign_id = $campaignId
       AND subscriber_id > 0
@@ -34,21 +34,21 @@ class CmeAnalytics
     $times          = [];
     foreach($subscribers as $subscriber)
     {
-      $subscriber_ids[]                  = $subscriber->subscriber_id;
-      $times[$subscriber->subscriber_id] = $subscriber->time;
+      $subscriber_ids[]                  = $subscriber['subscriber_id'];
+      $times[$subscriber['subscriber_id']] = $subscriber['time'];
     }
 
     $result = [];
     if($subscriber_ids)
     {
-      $result = DB::select(
+      $result = CmeDatabase::conn()->select(
         "SELECT id, email FROM $listTable
          WHERE id IN (" . implode(',', $subscriber_ids) . ")"
       );
 
       foreach($result as $i => $row)
       {
-        $result[$i]->time = $times[$row->id];
+        $result[$i]['time'] = $times[$row['id']];
       }
     }
 
@@ -92,16 +92,16 @@ class CmeAnalytics
       );
       foreach($events as $event)
       {
-        if(isset($stats[$event->event_type]))
+        if(isset($stats[$event['event_type']]))
         {
-          if(!isset($counted[$event->event_type][$event->subscriber_id]))
+          if(!isset($counted[$event['event_type']][$event['subscriber_id']]))
           {
-            $counted[$event->event_type][$event->subscriber_id] = 1;
-            $stats[$event->event_type]['unique']++;
+            $counted[$event['event_type']][$event['subscriber_id']] = 1;
+            $stats[$event['event_type']]['unique']++;
           }
-          $stats[$event->event_type]['total']++;
+          $stats[$event['event_type']]['total']++;
         }
-        $lastId = $event->event_id;
+        $lastId = $event['event_id'];
       }
     }
     while($events);
@@ -122,13 +122,13 @@ class CmeAnalytics
     $stats = [];
     foreach($clicks as $c)
     {
-      if(!isset($stats[$c->reference]))
+      if(!isset($stats[$c['reference']]))
       {
-        $stats[$c->reference]['unique'] = 0;
-        $stats[$c->reference]['total']  = 0;
+        $stats[$c['reference']]['unique'] = 0;
+        $stats[$c['reference']]['total']  = 0;
       }
-      $stats[$c->reference]['unique']++;
-      $stats[$c->reference]['total'] += $c->total;
+      $stats[$c['reference']]['unique']++;
+      $stats[$c['reference']]['total'] += $c->total;
     }
 
     return $stats;

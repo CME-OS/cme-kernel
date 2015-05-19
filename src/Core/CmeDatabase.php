@@ -20,6 +20,9 @@ class CmeDatabase
   private static $_instance;
   private static $_config;
 
+  /**
+   * @param InitData $data
+   */
   public static function init(InitData $data)
   {
     self::$_config = [
@@ -34,8 +37,20 @@ class CmeDatabase
     ];
   }
 
+  /**
+   * @return \Illuminate\Database\Connection
+   * @throws \Exception
+   */
   public static function conn()
   {
+    if(self::$_config === null)
+    {
+      throw new \Exception(
+        "Database config not found. "
+        . "Looks like CmeKernel has not been initiliazed"
+      );
+    }
+
     if(self::$_instance === null)
     {
       self::$_instance = new Capsule();
@@ -47,6 +62,10 @@ class CmeDatabase
     return self::$_instance->connection();
   }
 
+  /**
+   * @return \Illuminate\Database\Schema\Builder
+   * @throws \Exception
+   */
   public static function schema()
   {
     $conn = self::conn();
@@ -54,15 +73,29 @@ class CmeDatabase
     return self::$_instance->schema();
   }
 
+  /**
+   * @param Data  $dataObj
+   * @param array $data
+   *
+   * @return Data
+   */
   public static function hydrate(Data $dataObj, array $data)
   {
     foreach($data as $key => $value)
     {
-      $dataObj->{camel_case($key)} = $value;
+      if(property_exists(get_class($dataObj), camel_case($key)))
+      {
+        $dataObj->{camel_case($key)} = $value;
+      }
     }
     return $dataObj;
   }
 
+  /**
+   * @param Data $dataObj
+   *
+   * @return array
+   */
   public static function dataToArray(Data $dataObj)
   {
     $data   = (array)$dataObj;

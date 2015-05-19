@@ -11,10 +11,19 @@ namespace CmeKernel\Core;
 use CmeKernel\Data\SearchData;
 use CmeKernel\Data\CampaignData;
 use CmeKernel\Helpers\CampaignHelper;
+use CmeKernel\Helpers\ListHelper;
 
 class CmeCampaign
 {
   private $_tableName = "campaigns";
+
+  public function exists($id)
+  {
+    $result = CmeDatabase::conn()->select(
+      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+    );
+    return ($result) ? true : false;
+  }
 
   /**
    * @param $id
@@ -34,6 +43,46 @@ class CmeCampaign
       $data = CmeDatabase::hydrate(new CampaignData(), head($campaign));
     }
     return $data;
+  }
+
+  /**
+   * @param bool $includeDeleted
+   *
+   * @return CampaignData[];
+   */
+  public function all($includeDeleted = false)
+  {
+    $return = [];
+    if($includeDeleted)
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->get();
+    }
+    else
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->whereNull(
+        'deleted_at'
+      )->get();
+    }
+
+    foreach($result as $row)
+    {
+      $return[] = CmeDatabase::hydrate(new CampaignData(), $row);
+    }
+
+    return $return;
+  }
+
+  /**
+   * Returns the number of recipients for a given campaign and list combination
+   *
+   * @param $id
+   * @param $listId
+   *
+   * @return mixed
+   */
+  public function getRecipientCount($id, $listId)
+  {
+    return ListHelper::count($listId, $id);
   }
 
   /**
@@ -87,6 +136,11 @@ class CmeCampaign
     return true;
   }
 
+  /**
+   * Duplicate or copies a campaign to ease campaign creation.
+   *
+   * @param $id
+   */
   public function copy($id)
   {
     $campaign            = $this->get($id);

@@ -13,10 +13,18 @@ class CmeTemplate
 {
   private $_tableName = "templates";
 
+  public function exists($id)
+  {
+    $result = CmeDatabase::conn()->select(
+      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+    );
+    return ($result)? true : false;
+  }
+
   /**
    * @param $id
    *
-   * @return bool| BrandData
+   * @return bool| TemplateData
    */
   public function get($id)
   {
@@ -31,6 +39,33 @@ class CmeTemplate
       $data = CmeDatabase::hydrate(new TemplateData(), head($template));
     }
     return $data;
+  }
+
+  /**
+   * @param bool $includeDeleted
+   *
+   * @return TemplateData[];
+   */
+  public function all($includeDeleted = false)
+  {
+    $return = [];
+    if($includeDeleted)
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->get();
+    }
+    else
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->whereNull(
+        'deleted_at'
+      )->get();
+    }
+
+    foreach($result as $row)
+    {
+      $return[] = CmeDatabase::hydrate(new TemplateData(), $row);
+    }
+
+    return $return;
   }
 
   /**

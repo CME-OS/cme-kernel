@@ -34,6 +34,18 @@ class CmeCampaignEvent
   }
 
   /**
+   * @param $id - Campaign ID
+   *
+   * @return int
+   */
+  public function getSentMessages($id)
+  {
+    return CmeDatabase::conn()->table($this->_tableName)->where(
+      ['campaign_id' => $id, 'event_type' => 'Sent']
+    )->count();
+  }
+
+  /**
    * @param CampaignEventData $data
    *
    * @return bool

@@ -15,6 +15,14 @@ class CmeList
 {
   private $_tableName = "lists";
 
+  public function exists($id)
+  {
+    $result = CmeDatabase::conn()->select(
+      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+    );
+    return ($result)? true : false;
+  }
+
   /**
    * @param $id
    *
@@ -38,11 +46,38 @@ class CmeList
     //check if list table exists/
     if(CmeDatabase::schema()->hasTable($tableName))
     {
-      $size = DB::table($tableName)->count();
+      $size = CmeDatabase::conn()->table($tableName)->count();
     }
     $data->setSize($size);
 
     return $data;
+  }
+
+  /**
+   * @param bool $includeDeleted
+   *
+   * @return ListData[];
+   */
+  public function all($includeDeleted = false)
+  {
+    $return = [];
+    if($includeDeleted)
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->get();
+    }
+    else
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->whereNull(
+        'deleted_at'
+      )->get();
+    }
+
+    foreach($result as $row)
+    {
+      $return[] = CmeDatabase::hydrate(new ListData(), $row);
+    }
+
+    return $return;
   }
 
   /**

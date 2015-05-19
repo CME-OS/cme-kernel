@@ -12,6 +12,14 @@ class CmeBrand
 {
   private $_tableName = "brands";
 
+  public function exists($id)
+  {
+    $result = CmeDatabase::conn()->select(
+      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+    );
+    return ($result)? true : false;
+  }
+
   /**
    * @param $id
    *
@@ -30,6 +38,33 @@ class CmeBrand
       $data = CmeDatabase::hydrate(new BrandData(), head($brand));
     }
     return $data;
+  }
+
+  /**
+   * @param bool $includeDeleted
+   *
+   * @return BrandData[];
+   */
+  public function all($includeDeleted = false)
+  {
+    $return = [];
+    if($includeDeleted)
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->get();
+    }
+    else
+    {
+      $result = CmeDatabase::conn()->table($this->_tableName)->whereNull(
+        'brand_deleted_at'
+      )->get();
+    }
+
+    foreach($result as $row)
+    {
+      $return[] = CmeDatabase::hydrate(new BrandData(), $row);
+    }
+
+    return $return;
   }
 
   /**
