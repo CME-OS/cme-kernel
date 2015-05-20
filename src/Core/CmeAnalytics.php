@@ -5,22 +5,28 @@
 
 namespace CmeKernel\Core;
 
+use CmeKernel\Enums\EventType;
 use CmeKernel\Helpers\ListHelper;
 
 class CmeAnalytics
 {
+
   /**
-   * @param string $eventType queued|sent|opened|clicked|failed|bounced|unsubscribed
-   * @param        $campaignId
-   * @param        $limit
+   * @param EventType $eventType
+   * @param int       $campaignId
+   * @param int       $limit
    *
    * @return array
+   * @throws \Exception
    */
-  public function getLastXOfEvent($eventType, $campaignId, $limit = 10)
+  public function getLastXOfEvent(
+    EventType $eventType, $campaignId, $limit = 10
+  )
   {
     $campaign  = CmeKernel::Campaign()->get($campaignId);
     $listTable = ListHelper::getTable($campaign->listId);
 
+    $eventType = $eventType->getValue();
     $subscribers = CmeDatabase::conn()->select(
       "SELECT subscriber_id, time FROM campaign_events
       WHERE campaign_id = $campaignId
@@ -34,7 +40,7 @@ class CmeAnalytics
     $times          = [];
     foreach($subscribers as $subscriber)
     {
-      $subscriber_ids[]                  = $subscriber['subscriber_id'];
+      $subscriber_ids[]                    = $subscriber['subscriber_id'];
       $times[$subscriber['subscriber_id']] = $subscriber['time'];
     }
 
@@ -62,16 +68,7 @@ class CmeAnalytics
    */
   public function getEventCounts($campaignId)
   {
-    $eventTypes = [
-      'queued',
-      'sent',
-      'opened',
-      'clicked',
-      'failed',
-      'bounced',
-      'unsubscribed'
-    ];
-
+    $eventTypes = EventType::getPossibleValues();
     $stats   = [];
     $counted = [];
     foreach($eventTypes as $type)
@@ -115,7 +112,7 @@ class CmeAnalytics
       "SELECT count(*) as total, subscriber_id, reference FROM campaign_events
       WHERE campaign_id = $campaignId
       AND subscriber_id > 0
-      AND event_type='clicked'
+      AND event_type='".EventType::CLICKED."'
       GROUP BY reference, subscriber_id"
     );
 

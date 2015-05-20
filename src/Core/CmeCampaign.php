@@ -10,6 +10,7 @@ namespace CmeKernel\Core;
 
 use CmeKernel\Data\SearchData;
 use CmeKernel\Data\CampaignData;
+use CmeKernel\Enums\CampaignStatus;
 use CmeKernel\Helpers\CampaignHelper;
 use CmeKernel\Helpers\ListHelper;
 
@@ -201,7 +202,7 @@ class CmeCampaign
       //update status of campaign
       CmeDatabase::conn()->table($this->_tableName)
         ->where(['id' => $id])
-        ->update(['status' => 'Queuing']);
+        ->update(['status' => CampaignStatus::QUEUING]);
     }
     return true;
   }
@@ -215,14 +216,14 @@ class CmeCampaign
   {
     CmeDatabase::conn()
       ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => 'Pending'])
-      ->update(['status' => 'Paused']);
+      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
+      ->update(['status' => CampaignStatus::PAUSED]);
 
     //update status of campaign
     CmeDatabase::conn()
       ->table($this->_tableName)
       ->where(['id' => $id])
-      ->update(['status' => 'Paused']);
+      ->update(['status' => CampaignStatus::PAUSED]);
 
     return true;
   }
@@ -236,13 +237,13 @@ class CmeCampaign
   {
     CmeDatabase::conn()
       ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => 'Paused'])
-      ->update(['status' => 'Pending']);
+      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PAUSED])
+      ->update(['status' => CampaignStatus::PENDING]);
 
     //update status of campaign
     CmeDatabase::conn()
       ->table($this->_tableName)
-      ->where(['id' => $id])->update(['status' => 'Queued']);
+      ->where(['id' => $id])->update(['status' => CampaignStatus::QUEUED]);
 
     return true;
   }
@@ -257,14 +258,14 @@ class CmeCampaign
     //delete pending messages from the queue
     CmeDatabase::conn()
       ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => 'pending'])
+      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
       ->delete();
 
     //update status of campaign
     CmeDatabase::conn()
       ->table($this->_tableName)
       ->where(['id' => $id])
-      ->update(['status' => 'Aborted']);
+      ->update(['status' => CampaignStatus::ABORTED]);
 
     return true;
   }
