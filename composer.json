@@ -1,6 +1,8 @@
 {
   "name":        "cme/cme-kernel",
   "description": "CME (Campaigns Made Easy) Kernel",
+  "homepage":    "http://www.campaignsmadeeasy.com",
+  "license":     "BSD-3-Clause",
   "authors":     [
     {
       "name":  "Okechukwu Ugwu",
