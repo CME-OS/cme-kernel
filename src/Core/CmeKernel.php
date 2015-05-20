@@ -53,4 +53,9 @@ class CmeKernel
   {
     return new CmeAnalytics();
   }
+
+  public static function ApiClient()
+  {
+    return new CmeApiClient();
+  }
 }
