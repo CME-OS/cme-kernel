@@ -10,6 +10,7 @@
     }
   ],
   "require":     {
+    "php":                   ">=5.4.0",
     "illuminate/database":   "4.2.*",
     "illuminate/encryption": "4.2.*",
     "illuminate/log":        "4.2.*"
