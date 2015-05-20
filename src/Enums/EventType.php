@@ -27,7 +27,7 @@ class EventType extends CmeEnum
   const OPENED       = "opened";
   const CLICKED      = "clicked";
   const FAILED       = "failed";
-  const BOUNCED      = 300;
+  const BOUNCED      = "bounced";
   const UNSUBSCRIBED = "unsubscribed";
   const TEST         = "test";
   const UNKNOWN      = "Unknown";

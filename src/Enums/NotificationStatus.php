@@ -9,7 +9,7 @@ namespace CmeKernel\Enums;
  * Class NotificationStatus
  * @package CmeKernel\Enums
  *
- * @method static PENDING
+ * @method static READ
  * @method static UNREAD
  */
 class NotificationStatus extends CmeEnum
