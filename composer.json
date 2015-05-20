@@ -13,7 +13,8 @@
     "php":                   ">=5.4.0",
     "illuminate/database":   "4.2.*",
     "illuminate/encryption": "4.2.*",
-    "illuminate/log":        "4.2.*"
+    "illuminate/log":        "4.2.*",
+    "garoevans/php-enum":    "1.2.0"
   },
   "autoload":    {
     "psr-4": {
