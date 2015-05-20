@@ -22,4 +22,9 @@ abstract class CmeEnum extends Enum
     }
     return $return;
   }
+
+  public static function getPossibleValues()
+  {
+    return array_values((new static)->getConstList());
+  }
 }
