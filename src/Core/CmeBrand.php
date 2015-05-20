@@ -126,7 +126,7 @@ class CmeBrand
   /**
    * @param int $id - Brand ID
    *
-   * @return CmeCampaign[]
+   * @return CampaignData[]
    */
   public function campaigns($id)
   {

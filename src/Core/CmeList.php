@@ -282,7 +282,7 @@ class CmeList
   /**
    * @param int $id - List ID
    *
-   * @return CmeCampaign[]
+   * @return CampaignData[]
    */
   public function campaigns($id)
   {

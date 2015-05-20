@@ -168,7 +168,7 @@ class CmeSmtpProvider
   /**
    * @param int $id - SMTP Provider ID
    *
-   * @return CmeCampaign[]
+   * @return CampaignData[]
    */
   public function campaigns($id)
   {
