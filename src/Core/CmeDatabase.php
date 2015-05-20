@@ -76,14 +76,23 @@ class CmeDatabase
   /**
    * @param Data  $dataObj
    * @param array $data
+   * @param bool  $checkProperty
    *
    * @return Data
    */
-  public static function hydrate(Data $dataObj, array $data)
+  public static function hydrate(
+    Data $dataObj, array $data, $checkProperty = true
+  )
   {
     foreach($data as $key => $value)
     {
-      if(property_exists(get_class($dataObj), camel_case($key)))
+      $hydrate = true;
+      if($checkProperty)
+      {
+        $hydrate = property_exists(get_class($dataObj), camel_case($key));
+      }
+
+      if($hydrate)
       {
         $dataObj->{camel_case($key)} = $value;
       }
