@@ -8,7 +8,7 @@
 include_once 'vendor/autoload.php';
 use CmeKernel\Core\CmeKernel;
 
-$initData             = new \CmeKernel\Data\InitData();
+$initData             = new \CmeData\InitData();
 $initData->dbHost     = 'localhost';
 $initData->dbName     = 'cme';
 $initData->dbUsername = 'root';
@@ -35,7 +35,7 @@ function copyCampaign()
 
 function updateCampaign()
 {
-  $d              = new \CmeKernel\Data\CampaignData();
+  $d              = new \CmeData\CampaignData();
   $d->brandId     = 4;
   $d->listId      = 1;
   $d->name        = "Test Kernel222";
@@ -49,7 +49,7 @@ function updateCampaign()
 
 function createCampaign()
 {
-  $d              = new \CmeKernel\Data\CampaignData();
+  $d              = new \CmeData\CampaignData();
   $d->brandId     = 4;
   $d->listId      = 1;
   $d->name        = "Test Kernel222";
@@ -68,7 +68,7 @@ function getSubscribers()
 
 function createList()
 {
-  $l       = new \CmeKernel\Data\ListData();
+  $l       = new \CmeData\ListData();
   $l->name = "Kernel List";
 
   $x = CmeKernel::EmailList()->create($l);
@@ -77,7 +77,7 @@ function createList()
 
 function addSubscriberToList()
 {
-  $s            = new \CmeKernel\Data\SubscriberData();
+  $s            = new \CmeData\SubscriberData();
   $s->email     = "tomtom@sold.io";
   $s->firstName = "Tom";
   $s->lastName  = "Tom";
@@ -99,4 +99,14 @@ function getBrand()
   var_dump($x);
 }
 
-getCampaign();
+function t(\CmeKernel\Enums\EventType $d)
+{
+  $x = new stdClass();
+  $x->name = $d->getValue();
+
+  var_dump($x);
+}
+
+$x = new \CmeKernel\Core\CmeAnalytics();
+$y = $x->getLastXOfEvent(\CmeKernel\Enums\EventType::QUEUED(), 24, 2);
+var_dump($y);
