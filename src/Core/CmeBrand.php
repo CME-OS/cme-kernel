@@ -5,8 +5,8 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\BrandData;
-use CmeKernel\Data\CampaignData;
+use CmeData\BrandData;
+use CmeData\CampaignData;
 
 class CmeBrand
 {
@@ -35,7 +35,7 @@ class CmeBrand
     $data = false;
     if($brand)
     {
-      $data = CmeDatabase::hydrate(new BrandData(), head($brand));
+      $data = BrandData::hydrate(head($brand));
     }
     return $data;
   }
@@ -61,7 +61,7 @@ class CmeBrand
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new BrandData(), $row);
+      $return[] = BrandData::hydrate($row);
     }
 
     return $return;
@@ -86,7 +86,7 @@ class CmeBrand
     $id                 = CmeDatabase::conn()
       ->table($this->_tableName)
       ->insertGetId(
-        CmeDatabase::dataToArray($data)
+        $data->toArray()
       );
 
     return $id;
@@ -101,7 +101,7 @@ class CmeBrand
   {
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -117,7 +117,7 @@ class CmeBrand
     $data->brandDeletedAt = time();
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -136,7 +136,7 @@ class CmeBrand
     $return = [];
     foreach($campaigns as $campaign)
     {
-      $return[] = CmeDatabase::hydrate(new CampaignData(), $campaign);
+      $return[] = CampaignData::hydrate($campaign);
     }
 
     return $return;

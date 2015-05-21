@@ -5,8 +5,8 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\CampaignData;
-use CmeKernel\Data\SmtpProviderData;
+use CmeData\CampaignData;
+use CmeData\SmtpProviderData;
 use Illuminate\Encryption\Encrypter;
 
 class CmeSmtpProvider
@@ -36,7 +36,7 @@ class CmeSmtpProvider
     $data = false;
     if($provider)
     {
-      $data = CmeDatabase::hydrate(new SmtpProviderData(), head($provider));
+      $data = SmtpProviderData::hydrate(head($provider));
     }
     return $data;
   }
@@ -62,7 +62,7 @@ class CmeSmtpProvider
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new SmtpProviderData(), $row);
+      $return[] = SmtpProviderData::hydrate($row);
     }
 
     return $return;
@@ -85,7 +85,7 @@ class CmeSmtpProvider
       $id             = CmeDatabase::conn()
         ->table($this->_tableName)
         ->insertGetId(
-          CmeDatabase::dataToArray($data)
+          $data->toArray()
         );
 
       return $id;
@@ -122,7 +122,7 @@ class CmeSmtpProvider
 
       CmeDatabase::conn()->table($this->_tableName)
         ->where('id', '=', $data->id)
-        ->update(CmeDatabase::dataToArray($data));
+        ->update($data->toArray());
 
       return true;
     }
@@ -145,7 +145,7 @@ class CmeSmtpProvider
     $data->deletedAt = time();
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -178,7 +178,7 @@ class CmeSmtpProvider
     $return = [];
     foreach($campaigns as $campaign)
     {
-      $return[] = CmeDatabase::hydrate(new CampaignData(), $campaign);
+      $return[] = CampaignData::hydrate($campaign);
     }
 
     return $return;

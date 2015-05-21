@@ -8,8 +8,7 @@
  */
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\SearchData;
-use CmeKernel\Data\CampaignData;
+use CmeData\CampaignData;
 use CmeKernel\Enums\CampaignStatus;
 use CmeKernel\Helpers\CampaignHelper;
 use CmeKernel\Helpers\ListHelper;
@@ -41,7 +40,7 @@ class CmeCampaign
     $data = false;
     if($campaign)
     {
-      $data = CmeDatabase::hydrate(new CampaignData(), head($campaign));
+      $data = CampaignData::hydrate(head($campaign));
     }
     return $data;
   }
@@ -67,10 +66,7 @@ class CmeCampaign
 
     foreach($result as $row)
     {
-      /**
-       * @var $campaign CampaignData
-       */
-      $campaign               = CmeDatabase::hydrate(new CampaignData(), $row);
+      $campaign               = CampaignData::hydrate($row);
       $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
       $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
       $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
@@ -104,7 +100,7 @@ class CmeCampaign
   {
     $data->created = time();
     $result        = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
-      CmeDatabase::dataToArray($data)
+      $data->toArray()
     );
 
     return $result;
@@ -140,7 +136,7 @@ class CmeCampaign
     CmeDatabase::conn()->table($this->_tableName)
       ->where(['id' => $data->id])
       ->update(
-        CmeDatabase::dataToArray($data)
+        $data->toArray()
       );
 
     return true;
@@ -179,15 +175,6 @@ class CmeCampaign
       $this->update($data);
     }
     return true;
-  }
-
-  /**
-   * @param SearchData $data
-   *
-   * @return CampaignData[]
-   */
-  public function search(SearchData $data)
-  {
   }
 
   /**

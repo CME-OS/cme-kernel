@@ -8,8 +8,7 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\Data;
-use CmeKernel\Data\InitData;
+use CmeData\InitData;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 class CmeDatabase
@@ -71,52 +70,5 @@ class CmeDatabase
     $conn = self::conn();
     $conn->useDefaultSchemaGrammar();
     return self::$_instance->schema();
-  }
-
-  /**
-   * @param Data  $dataObj
-   * @param array $data
-   * @param bool  $checkProperty
-   *
-   * @return Data
-   */
-  public static function hydrate(
-    Data $dataObj, array $data, $checkProperty = true
-  )
-  {
-    foreach($data as $key => $value)
-    {
-      $hydrate = true;
-      if($checkProperty)
-      {
-        $hydrate = property_exists(get_class($dataObj), camel_case($key));
-      }
-
-      if($hydrate)
-      {
-        $dataObj->{camel_case($key)} = $value;
-      }
-    }
-    return $dataObj;
-  }
-
-  /**
-   * @param Data $dataObj
-   *
-   * @return array
-   */
-  public static function dataToArray(Data $dataObj)
-  {
-    $data   = (array)$dataObj;
-    $return = [];
-    foreach($data as $k => $v)
-    {
-      if(isset($v))
-      {
-        $return[snake_case($k)] = $v;
-      }
-    }
-
-    return $return;
   }
 }

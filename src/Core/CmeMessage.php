@@ -5,7 +5,7 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\MessageQueueData;
+use CmeData\MessageQueueData;
 
 class CmeMessage
 {
@@ -16,10 +16,7 @@ class CmeMessage
     $data->id = null;
     $id       = CmeDatabase::conn()
       ->table($this->_tableName)
-      ->insertGetId(
-        CmeDatabase::dataToArray($data)
-      );
-
+      ->insertGetId($data->toArray());
     return $id;
   }
 }

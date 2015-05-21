@@ -5,10 +5,8 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\CampaignData;
-use CmeKernel\Data\ListImportQueueData;
-use CmeKernel\Data\ListData;
-use CmeKernel\Data\SubscriberData;
+use CmeData\ListData;
+use CmeData\SubscriberData;
 use CmeKernel\Helpers\ListHelper;
 
 class CmeList
@@ -38,7 +36,7 @@ class CmeList
     $data = false;
     if($list)
     {
-      $data = CmeDatabase::hydrate(new ListData(), head($list));
+      $data = ListData::hydrate(head($list));
     }
 
     $tableName = ListHelper::getTable($data->id);
@@ -74,7 +72,7 @@ class CmeList
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new ListData(), $row);
+      $return[] = ListData::hydrate($row);
     }
 
     return $return;
@@ -92,7 +90,7 @@ class CmeList
       )
     );
 
-    return CmeDatabase::hydrate(new ListData(), $row);
+    return ListData::hydrate($row);
   }
 
   /**
@@ -110,7 +108,7 @@ class CmeList
     $id = CmeDatabase::conn()
       ->table($this->_tableName)
       ->insertGetId(
-        CmeDatabase::dataToArray($data)
+        $data->toArray()
       );
 
     return $id;
@@ -125,7 +123,7 @@ class CmeList
   {
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -141,7 +139,7 @@ class CmeList
     $data->deletedAt = time();
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -171,7 +169,7 @@ class CmeList
 
         foreach($result as $row)
         {
-          $subscribers[] = CmeDatabase::hydrate(new SubscriberData(), $row);
+          $subscribers[] = SubscriberData::hydrate($row);
         }
       }
     }
@@ -201,7 +199,7 @@ class CmeList
         /**
          * @var SubscriberData $data
          */
-        $data = CmeDatabase::hydrate(new SubscriberData(), head($result));
+        $data = SubscriberData::hydrate(head($result));
       }
     }
 
@@ -221,18 +219,16 @@ class CmeList
     $added             = false;
     if($listId)
     {
-      $table = ListHelper::getTable($listId);
+      $table     = ListHelper::getTable($listId);
+      $dataArray = $data->toArray();
       if(!CmeDatabase::schema()->hasTable($table))
       {
-        $columns = array_keys(CmeDatabase::dataToArray($data));
+        $columns = array_keys($dataArray);
         $columns = array_diff($columns, ListHelper::inBuiltFields());
         ListHelper::createListTable($listId, $columns);
       }
 
-      CmeDatabase::conn()->table($table)->insert(
-        CmeDatabase::dataToArray($data)
-      );
-
+      CmeDatabase::conn()->table($table)->insert($dataArray);
       $added = false;
     }
 

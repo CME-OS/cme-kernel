@@ -5,7 +5,7 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\InitData;
+use CmeData\InitData;
 
 class CmeKernel
 {

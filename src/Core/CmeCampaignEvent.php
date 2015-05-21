@@ -5,9 +5,8 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\BrandData;
-use CmeKernel\Data\CampaignData;
-use CmeKernel\Data\CampaignEventData;
+use CmeData\BrandData;
+use CmeData\CampaignEventData;
 
 class CmeCampaignEvent
 {
@@ -28,7 +27,7 @@ class CmeCampaignEvent
     $data = false;
     if($event)
     {
-      $data = CmeDatabase::hydrate(new CampaignEventData(), head($event));
+      $data = CampaignEventData::hydrate(head($event));
     }
     return $data;
   }
@@ -54,7 +53,7 @@ class CmeCampaignEvent
   {
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->eventId)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -70,42 +69,77 @@ class CmeCampaignEvent
     return true;
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackQueue(CampaignEventData $data)
   {
     $data->eventType = 'queued';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackOpen(CampaignEventData $data)
   {
     $data->eventType = 'opened';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackUnsubscribe(CampaignEventData $data)
   {
     $data->eventType = 'unsubscribed';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackClick(CampaignEventData $data)
   {
     $data->eventType = 'clicked';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackSend(CampaignEventData $data)
   {
     $data->eventType = 'sent';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackBounce(CampaignEventData $data)
   {
     $data->eventType = 'bounced';
     return $this->_create($data);
   }
 
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackFail(CampaignEventData $data)
   {
     $data->eventType = 'failed';
@@ -124,7 +158,7 @@ class CmeCampaignEvent
     $id            = CmeDatabase::conn()
       ->table($this->_tableName)
       ->insertGetId(
-        CmeDatabase::dataToArray($data)
+        $data->toArray()
       );
 
     return $id;

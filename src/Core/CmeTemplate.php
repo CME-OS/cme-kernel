@@ -5,9 +5,7 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\BrandData;
-use CmeKernel\Data\CampaignData;
-use CmeKernel\Data\TemplateData;
+use CmeData\TemplateData;
 
 class CmeTemplate
 {
@@ -36,7 +34,7 @@ class CmeTemplate
     $data = false;
     if($template)
     {
-      $data = CmeDatabase::hydrate(new TemplateData(), head($template));
+      $data = TemplateData::hydrate(head($template));
     }
     return $data;
   }
@@ -62,7 +60,7 @@ class CmeTemplate
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new TemplateData(), $row);
+      $return[] = TemplateData::hydrate($row);
     }
 
     return $return;
@@ -87,7 +85,7 @@ class CmeTemplate
     $id            = CmeDatabase::conn()
       ->table($this->_tableName)
       ->insertGetId(
-        CmeDatabase::dataToArray($data)
+        $data->toArray()
       );
 
     return $id;
@@ -102,7 +100,7 @@ class CmeTemplate
   {
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
@@ -118,7 +116,7 @@ class CmeTemplate
     $data->deletedAt = time();
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }

@@ -5,7 +5,7 @@
 
 namespace CmeKernel\Core;
 
-use CmeKernel\Data\UserData;
+use CmeData\UserData;
 
 class CmeUser
 {
@@ -34,7 +34,7 @@ class CmeUser
     $data = false;
     if($user)
     {
-      $data = CmeDatabase::hydrate(new UserData(), head($user));
+      $data = UserData::hydrate(head($user));
     }
     return $data;
   }
@@ -60,7 +60,7 @@ class CmeUser
 
     foreach($result as $row)
     {
-      $return[] = CmeDatabase::hydrate(new UserData(), $row);
+      $return[] = UserData::hydrate($row);
     }
 
     return $return;
@@ -78,9 +78,7 @@ class CmeUser
     $data->updatedAt = time();
     $id              = CmeDatabase::conn()
       ->table($this->_tableName)
-      ->insertGetId(
-        CmeDatabase::dataToArray($data)
-      );
+      ->insertGetId($data->toArray());
 
     return $id;
   }
@@ -94,7 +92,7 @@ class CmeUser
   {
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->id)
-      ->update(CmeDatabase::dataToArray($data));
+      ->update($data->toArray());
 
     return true;
   }
