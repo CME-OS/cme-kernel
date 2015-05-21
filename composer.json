@@ -15,7 +15,7 @@
     "illuminate/encryption": "4.2.*",
     "illuminate/log":        "4.2.*",
     "garoevans/php-enum":    "1.2.0",
-    "cme/cme-data":          "dev-master"
+    "cme/cme-data":          "v1.0.1"
   },
   "autoload":    {
     "psr-4": {
