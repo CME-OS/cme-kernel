@@ -9,6 +9,7 @@ use CmeData\CampaignData;
 use CmeData\ListData;
 use CmeData\ListImportQueueData;
 use CmeData\SubscriberData;
+use CmeData\UnsubscribeData;
 use CmeKernel\Helpers\ListHelper;
 
 class CmeList
@@ -257,6 +258,30 @@ class CmeList
     }
 
     return $deleted;
+  }
+
+  /**
+   * @param $email
+   *
+   * @return bool
+   * @throws \Exception
+   */
+  public function isUnsubscribed($email)
+  {
+    $result = CmeDatabase::conn()->table('unsubscribes')
+      ->where('email', '=', $email)->get(['email']);
+    return ($result) ? true : false;
+  }
+
+  /**
+   * @param UnsubscribeData $data
+   *
+   * @return bool
+   * @throws \Exception
+   */
+  public function unsubscribe(UnsubscribeData $data)
+  {
+    return CmeDatabase::conn()->table('unsubscribes')->insert($data->toArray());
   }
 
   public function getColumns($listId)
