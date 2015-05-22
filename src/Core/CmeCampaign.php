@@ -92,6 +92,19 @@ class CmeCampaign
   }
 
   /**
+   * @param $field
+   *
+   * @return array
+   * @throws \Exception
+   */
+  public function getKeyedListFor($field)
+  {
+    return CmeDatabase::conn()->table($this->_tableName)
+      ->whereNull('deleted_at')
+      ->orderBy('id', 'asc')->lists($field, 'id');
+  }
+
+  /**
    * @param CampaignData $data
    *
    * @return bool
