@@ -39,18 +39,16 @@ class CmeList
     $data = false;
     if($list)
     {
-      $data = ListData::hydrate(head($list));
+      $data      = ListData::hydrate(head($list));
+      $tableName = ListHelper::getTable($data->id);
+      $size      = 0;
+      //check if list table exists/
+      if(CmeDatabase::schema()->hasTable($tableName))
+      {
+        $size = CmeDatabase::conn()->table($tableName)->count();
+      }
+      $data->setSize($size);
     }
-
-    $tableName = ListHelper::getTable($data->id);
-    $size      = 0;
-    //check if list table exists/
-    if(CmeDatabase::schema()->hasTable($tableName))
-    {
-      $size = CmeDatabase::conn()->table($tableName)->count();
-    }
-    $data->setSize($size);
-
     return $data;
   }
 
@@ -75,8 +73,8 @@ class CmeList
 
     foreach($result as $row)
     {
-      $list = ListData::hydrate($row);
-      $size = 0;
+      $list      = ListData::hydrate($row);
+      $size      = 0;
       $tableName = ListHelper::getTable($row['id']);
       if(CmeDatabase::schema()->hasTable($tableName))
       {
