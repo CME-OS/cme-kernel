@@ -8,10 +8,10 @@
  */
 namespace CmeKernel\Helpers;
 
+use CmeData\BrandData;
+use CmeData\CampaignData;
 use CmeKernel\Core\CmeCampaign;
 use CmeKernel\Core\CmeDatabase;
-use CmeKernel\Data\BrandData;
-use CmeKernel\Data\CampaignData;
 use Illuminate\Support\Facades\Log;
 
 class CampaignHelper
