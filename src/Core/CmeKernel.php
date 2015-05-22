@@ -9,9 +9,23 @@ use CmeData\InitData;
 
 class CmeKernel
 {
+  /**
+   * @var InitData $_config
+   */
+  private static $_config;
+
   public static function init(InitData $data)
   {
+    self::$_config = $data;
     CmeDatabase::init($data);
+  }
+
+  /**
+   * @return InitData
+   */
+  public static function Config()
+  {
+    return self::$_config;
   }
 
   public static function Campaign()
