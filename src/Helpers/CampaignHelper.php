@@ -119,7 +119,7 @@ class CampaignHelper
     $data = [
       'campaignId'            => $campaign->id,
       'listId'                => $campaign->listId,
-      'subscriberId'          => $subscriber->id,
+      'subscriberId'          => $subscriber['id'],
       'brand_unsubscribe_url' => $brand->brandUnsubscribeUrl
     ];
     $html = self::_insertTrackers($html, $data);
