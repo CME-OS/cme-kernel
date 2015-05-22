@@ -136,7 +136,13 @@ class CmeBrand
     $return = [];
     foreach($campaigns as $campaign)
     {
-      $return[] = CampaignData::hydrate($campaign);
+      $campaign               = CampaignData::hydrate($campaign);
+      $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
+      $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
+      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+        $campaign->smtpProviderId
+      );
+      $return[]               = $campaign;
     }
 
     return $return;
