@@ -12,6 +12,7 @@ use CmeData\BrandData;
 use CmeData\CampaignData;
 use CmeKernel\Core\CmeCampaign;
 use CmeKernel\Core\CmeDatabase;
+use CmeKernel\Core\CmeKernel;
 use Illuminate\Support\Facades\Log;
 
 class CampaignHelper
@@ -69,12 +70,12 @@ class CampaignHelper
   }
 
   public static function compileMessage(
-    CampaignData $campaign, BrandData $brand, $subscriber
+    CampaignData $campaign, BrandData $brand, array $subscriber
   )
   {
     if(self::$_placeHolders == null)
     {
-      $columns = array_keys((array)$subscriber);
+      $columns = array_keys($subscriber);
       foreach($columns as $c)
       {
         self::$_placeHolders[$c] = "[$c]";
@@ -94,15 +95,17 @@ class CampaignHelper
     foreach(self::$_placeHolders as $prop => $placeHolder)
     {
       $replace = false;
-      if(isset($subscriber->$prop))
+      if(isset($subscriber[$prop]))
       {
-        $replace = $subscriber->$prop;
+        $replace = $subscriber[$prop];
       }
-      elseif(isset($brand->$prop))
+      elseif(isset($brand->{camel_case($prop)}))
       {
+        //do no replace the brand's unsubscribe link as we want to wrap
+        //it in a tracking link later
         if($prop != 'brand_unsubscribe_url')
         {
-          $replace = $brand->$prop;
+          $replace = $brand->{camel_case($prop)};
         }
       }
 
@@ -178,7 +181,7 @@ class CampaignHelper
 
   private static function _generateTrackLink($type, $data)
   {
-    $domain = Config::get('app.domain');
+    $domain = CmeKernel::Config()->cmeHost;
     return "http://" . $domain . "/track/" . $type . "/" . $data['campaignId']
     . "_" . $data['listId'] . "_" . $data['subscriberId'];
   }
