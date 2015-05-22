@@ -75,7 +75,17 @@ class CmeList
 
     foreach($result as $row)
     {
-      $return[] = ListData::hydrate($row);
+      $list = ListData::hydrate($row);
+      $size = 0;
+      $tableName = ListHelper::getTable($row['id']);
+      if(CmeDatabase::schema()->hasTable($tableName))
+      {
+        $size = CmeDatabase::conn()
+          ->table($tableName)
+          ->count();
+      }
+      $list->setSize($size);
+      $return[] = $list;
     }
 
     return $return;
@@ -172,7 +182,7 @@ class CmeList
 
         foreach($result as $row)
         {
-          $subscribers[] = SubscriberData::hydrate($row);
+          $subscribers[] = SubscriberData::hydrate($row, false);
         }
       }
     }
@@ -202,7 +212,7 @@ class CmeList
         /**
          * @var SubscriberData $data
          */
-        $data = SubscriberData::hydrate(head($result));
+        $data = SubscriberData::hydrate(head($result), false);
       }
     }
 
