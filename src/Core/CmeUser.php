@@ -16,7 +16,7 @@ class CmeUser
     $result = CmeDatabase::conn()->select(
       "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
     );
-    return ($result)? true : false;
+    return ($result) ? true : false;
   }
 
   /**
@@ -74,8 +74,9 @@ class CmeUser
   public function create(UserData $data)
   {
     $data->id        = null;
-    $data->createdAt = time();
-    $data->updatedAt = time();
+    $data->createdAt = date('Y-m-d H:i:s');
+    $data->updatedAt = date('Y-m-d H:i:s');
+    $data->active    = 1;
     $id              = CmeDatabase::conn()
       ->table($this->_tableName)
       ->insertGetId($data->toArray());
@@ -90,6 +91,8 @@ class CmeUser
    */
   public function update(UserData $data)
   {
+    //TODO: write logic for updating users
+    //need to think of which fields should be updatable
     CmeDatabase::conn()->table($this->_tableName)
       ->where('id', '=', $data->id)
       ->update($data->toArray());
