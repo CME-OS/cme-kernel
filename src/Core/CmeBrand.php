@@ -124,14 +124,14 @@ class CmeBrand
 
 
   /**
-   * @param int $id - Brand ID
+   * @param int $brandId - Brand ID
    *
    * @return CampaignData[]
    */
-  public function campaigns($id)
+  public function campaigns($brandId)
   {
     $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['brand_id' => $id])->get();
+      ->where(['brand_id' => $brandId])->get();
 
     $return = [];
     foreach($campaigns as $campaign)

@@ -5,7 +5,9 @@
 
 namespace CmeKernel\Core;
 
+use CmeData\CampaignData;
 use CmeData\ListData;
+use CmeData\ListImportQueueData;
 use CmeData\SubscriberData;
 use CmeKernel\Helpers\ListHelper;
 
@@ -268,7 +270,7 @@ class CmeList
   {
     unset($data->id);
     CmeDatabase::conn()->table('import_queue')->insert(
-      CmeDatabase::dataToArray($data)
+      $data->toArray()
     );
 
     return true;
@@ -276,19 +278,19 @@ class CmeList
 
 
   /**
-   * @param int $id - List ID
+   * @param int $listId - List ID
    *
    * @return CampaignData[]
    */
-  public function campaigns($id)
+  public function campaigns($listId)
   {
     $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['list_id' => $id])->get();
+      ->where(['list_id' => $listId])->get();
 
     $return = [];
     foreach($campaigns as $campaign)
     {
-      $return[] = CmeDatabase::hydrate(new CampaignData(), $campaign);
+      $return[] = CampaignData::hydrate($campaign);
     }
 
     return $return;

@@ -166,14 +166,14 @@ class CmeSmtpProvider
 
 
   /**
-   * @param int $id - SMTP Provider ID
+   * @param int $smtpProviderId - SMTP Provider ID
    *
    * @return CampaignData[]
    */
-  public function campaigns($id)
+  public function campaigns($smtpProviderId)
   {
     $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['smtp_provider_id' => $id])->get();
+      ->where(['smtp_provider_id' => $smtpProviderId])->get();
 
     $return = [];
     foreach($campaigns as $campaign)
