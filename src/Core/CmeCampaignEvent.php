@@ -7,6 +7,8 @@ namespace CmeKernel\Core;
 
 use CmeData\BrandData;
 use CmeData\CampaignEventData;
+use CmeData\UnsubscribeData;
+use CmeKernel\Enums\EventType;
 
 class CmeCampaignEvent
 {
@@ -76,7 +78,7 @@ class CmeCampaignEvent
    */
   public function trackQueue(CampaignEventData $data)
   {
-    $data->eventType = 'queued';
+    $data->eventType = EventType::QUEUED;
     return $this->_create($data);
   }
 
@@ -87,7 +89,7 @@ class CmeCampaignEvent
    */
   public function trackOpen(CampaignEventData $data)
   {
-    $data->eventType = 'opened';
+    $data->eventType = EventType::OPENED;
     return $this->_create($data);
   }
 
@@ -98,8 +100,31 @@ class CmeCampaignEvent
    */
   public function trackUnsubscribe(CampaignEventData $data)
   {
-    $data->eventType = 'unsubscribed';
-    return $this->_create($data);
+    $success         = false;
+    $data->eventType = EventType::UNSUBSCRIBED;
+    $this->_create($data);
+    $subscriber = CmeKernel::EmailList()->getSubscriber(
+      $data->subscriberId,
+      $data->listId
+    );
+    if($subscriber)
+    {
+      $campaign     = CmeKernel::Campaign()->get($data->campaignId);
+      $unsubscribed = CmeKernel::EmailList()->isUnsubscribed(
+        $subscriber->email
+      );
+      if(!$unsubscribed && $subscriber->id > 0)
+      {
+        $udata             = new UnsubscribeData();
+        $udata->email      = $subscriber->email;
+        $udata->branId     = $campaign->brandId;
+        $udata->campaignId = $campaign->id;
+        $udata->listId     = $data->listId;
+        $udata->time       = time();
+        $success           = CmeKernel::EmailList()->unsubscribe($udata);
+      }
+    }
+    return $success;
   }
 
   /**
@@ -109,7 +134,7 @@ class CmeCampaignEvent
    */
   public function trackClick(CampaignEventData $data)
   {
-    $data->eventType = 'clicked';
+    $data->eventType = EventType::CLICKED;
     return $this->_create($data);
   }
 
@@ -120,7 +145,7 @@ class CmeCampaignEvent
    */
   public function trackSend(CampaignEventData $data)
   {
-    $data->eventType = 'sent';
+    $data->eventType = EventType::SENT;
     return $this->_create($data);
   }
 
@@ -131,7 +156,7 @@ class CmeCampaignEvent
    */
   public function trackBounce(CampaignEventData $data)
   {
-    $data->eventType = 'bounced';
+    $data->eventType = EventType::BOUNCED;
     return $this->_create($data);
   }
 
@@ -142,7 +167,7 @@ class CmeCampaignEvent
    */
   public function trackFail(CampaignEventData $data)
   {
-    $data->eventType = 'failed';
+    $data->eventType = EventType::FAILED;
     return $this->_create($data);
   }
 
