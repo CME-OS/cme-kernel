@@ -58,4 +58,9 @@ class CmeKernel
   {
     return new CmeApiClient();
   }
+
+  public static function Queues()
+  {
+    return new CmeQueues();
+  }
 }
