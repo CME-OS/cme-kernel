@@ -134,7 +134,7 @@ class CmeAnalytics
         $stats[$c['reference']]['total']  = 0;
       }
       $stats[$c['reference']]['unique']++;
-      $stats[$c['reference']]['total'] += $c->total;
+      $stats[$c['reference']]['total'] += $c['total'];
     }
 
     return $stats;
