@@ -49,7 +49,7 @@ class ListHelper
               //if column does not already exist, create it
               if(!CmeDatabase::schema()->hasColumn($tableName, $column))
               {
-                $table->string(Str::slug($column, '_'), 225);
+                $table->string(Str::slug($column, '_'), 225)->after('email');
               }
             }
           }
