@@ -42,7 +42,7 @@ class ListHelper
         //add any new columns that the list table does not already have.
         CmeDatabase::schema()->table(
           $tableName,
-          function (Blueprint $table, $tableName, $columns)
+          function (Blueprint $table) use ($tableName, $columns)
           {
             foreach($columns as $column)
             {
