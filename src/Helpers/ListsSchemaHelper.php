@@ -24,8 +24,6 @@ class ListsSchemaHelper extends SchemaHelper
   private static $_excludeColumns = [
     'id',
     'email',
-    'bounced',
-    'unsubscribed',
     'test_subscriber',
   ];
 
