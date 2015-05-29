@@ -122,6 +122,9 @@ class CmeList
         $data->toArray()
       );
 
+    //create default schema
+    ListHelper::createListTable($id, ['email']);
+
     return $id;
   }
 
@@ -232,12 +235,11 @@ class CmeList
     {
       $table     = ListHelper::getTable($listId);
       $dataArray = $data->toArray();
-      if(!CmeDatabase::schema()->hasTable($table))
-      {
-        $columns = array_keys($dataArray);
-        $columns = array_diff($columns, ListHelper::inBuiltFields());
-        ListHelper::createListTable($listId, $columns);
-      }
+
+      $columns = array_keys($dataArray);
+      //diff it, so we don't end up with duplicate column names
+      $columns = array_diff($columns, ListHelper::inBuiltFields());
+      ListHelper::createListTable($listId, $columns);
 
       CmeDatabase::conn()->table($table)->insert($dataArray);
       $added = false;

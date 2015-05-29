@@ -6,6 +6,7 @@ namespace CmeKernel\Helpers;
 
 use CmeKernel\Core\CmeCampaign;
 use CmeKernel\Core\CmeDatabase;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 
 class ListHelper
@@ -20,28 +21,59 @@ class ListHelper
     return CmeDatabase::schema()->hasTable(self::getTable($listId));
   }
 
+  /**
+   * List tables should be able to grow in columns size but not shrink. This
+   * method is idempotent, it won't do anything if the no new columns are
+   * introduced to an already existing table
+   *
+   * @param $listId
+   * @param $columns
+   *
+   * @throws \Exception
+   */
   public static function createListTable($listId, $columns)
   {
     if(in_array('email', $columns))
     {
-      $tableName = self::getTable($listId);
-      CmeDatabase::schema()->create(
-        $tableName,
-        function ($table) use ($columns)
-        {
-          //add other additional columns needed
-          $table->increments('id');
-          $table->unique('email');
-          foreach($columns as $column)
+      $tableName   = self::getTable($listId);
+      $tableExists = CmeDatabase::schema()->hasTable($tableName);
+      if($tableExists)
+      {
+        //add any new columns that the list table does not already have.
+        CmeDatabase::schema()->table(
+          $tableName,
+          function (Blueprint $table, $tableName, $columns)
           {
-            $table->string(Str::slug($column, '_'), 225);
+            foreach($columns as $column)
+            {
+              //if column does not already exist, create it
+              if(!CmeDatabase::schema()->hasColumn($tableName, $column))
+              {
+                $table->string(Str::slug($column, '_'), 225);
+              }
+            }
           }
-          $table->integer('bounced', 0);
-          $table->integer('unsubscribed', 0);
-          $table->integer('test_subscriber', 0);
-          $table->timestamp('date_created');
-        }
-      );
+        );
+      }
+      else
+      {
+        //create fresh schema
+        CmeDatabase::schema()->create(
+          $tableName,
+          function ($table) use ($columns, $tableExists, $tableName)
+          {
+            //add other additional columns needed
+            $table->increments('id');
+            $table->unique('email');
+            foreach($columns as $column)
+            {
+              $table->string(Str::slug($column, '_'), 225);
+            }
+            $table->integer('test_subscriber', 0);
+            $table->timestamp('date_created');
+          }
+        );
+      }
     }
     else
     {
@@ -85,8 +117,6 @@ class ListHelper
   {
     return [
       'id',
-      'bounced',
-      'unsubscribed',
       'test_subscriber',
       'date_created',
     ];
@@ -109,7 +139,7 @@ class ListHelper
     return head(
       CmeDatabase::conn()->select(
         sprintf(
-          "SELECT * FROM %s WHERE bounced=0 AND unsubscribed=0 LIMIT 1",
+          "SELECT * FROM %s LIMIT 1",
           self::getTable($listId)
         )
       )
@@ -124,8 +154,8 @@ class ListHelper
       $campaign = (new CmeCampaign())->get($campaignId);
       if($campaign->filters)
       {
-        $sql = FilterHelper::buildSql(json_decode($campaign->filters));
-        $filterSql = 'WHERE '.$sql;
+        $sql       = FilterHelper::buildSql(json_decode($campaign->filters));
+        $filterSql = 'WHERE ' . $sql;
       }
     }
 
