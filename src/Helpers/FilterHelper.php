@@ -6,7 +6,7 @@ namespace CmeKernel\Helpers;
 
 class FilterHelper
 {
-  public static function buildSql(array $filters)
+  public static function buildSql($filters)
   {
     $sql = "";
     if(self::isValidFilters($filters))
@@ -40,9 +40,9 @@ class FilterHelper
     return $sql;
   }
 
-  public static function isValidFilters(array $filters)
+  public static function isValidFilters($filters)
   {
-    return isset($filters['filter_field'])
+    return is_array($filters) && isset($filters['filter_field'])
     && isset($filters['filter_value'])
     && isset($filters['filter_operator']);
   }
