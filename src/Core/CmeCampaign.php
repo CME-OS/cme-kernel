@@ -44,7 +44,12 @@ class CmeCampaign
       $filters = json_decode($data->filters);
       if($filters)
       {
-        $data->filters = (array)$filters;
+        $filtersArray  = (array)$filters;
+        $data->filters = $filtersArray;
+        if(!$this->isValidFilters($filtersArray))
+        {
+          $data->filters = null;
+        }
       }
     }
     return $data;
@@ -143,7 +148,7 @@ class CmeCampaign
       $data->tested    = 0;
       $data->previewed = 0;
     }
-    if(is_array($data->filters))
+    if($this->isValidFilters($data->filters))
     {
       $data->filters = json_encode($data->filters);
     }
@@ -277,5 +282,12 @@ class CmeCampaign
       ->update(['status' => CampaignStatus::ABORTED]);
 
     return true;
+  }
+
+  public function isValidFilters(array $filters)
+  {
+    return isset($filters['filter_field'])
+    && isset($filters['filter_value'])
+    && isset($filters['filter_operator']);
   }
 }
