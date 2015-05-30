@@ -9,7 +9,7 @@ class FilterHelper
   public static function buildSql(array $filters)
   {
     $sql = "";
-    if($filters)
+    if(self::isValidFilters($filters))
     {
       $filtersCount = count($filters['filter_field']);
       $filterGroups = [];
@@ -38,5 +38,12 @@ class FilterHelper
     }
 
     return $sql;
+  }
+
+  public static function isValidFilters(array $filters)
+  {
+    return isset($filters['filter_field'])
+    && isset($filters['filter_value'])
+    && isset($filters['filter_operator']);
   }
 }

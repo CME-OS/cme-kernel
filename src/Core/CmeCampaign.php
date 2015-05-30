@@ -11,6 +11,7 @@ namespace CmeKernel\Core;
 use CmeData\CampaignData;
 use CmeKernel\Enums\CampaignStatus;
 use CmeKernel\Helpers\CampaignHelper;
+use CmeKernel\Helpers\FilterHelper;
 use CmeKernel\Helpers\ListHelper;
 
 class CmeCampaign
@@ -46,7 +47,7 @@ class CmeCampaign
       {
         $filtersArray  = (array)$filters;
         $data->filters = $filtersArray;
-        if(!$this->isValidFilters($filtersArray))
+        if(FilterHelper::isValidFilters($filtersArray))
         {
           $data->filters = null;
         }
@@ -148,7 +149,7 @@ class CmeCampaign
       $data->tested    = 0;
       $data->previewed = 0;
     }
-    if($this->isValidFilters($data->filters))
+    if(FilterHelper::isValidFilters($data->filters))
     {
       $data->filters = json_encode($data->filters);
     }
@@ -282,12 +283,5 @@ class CmeCampaign
       ->update(['status' => CampaignStatus::ABORTED]);
 
     return true;
-  }
-
-  public function isValidFilters(array $filters)
-  {
-    return isset($filters['filter_field'])
-    && isset($filters['filter_value'])
-    && isset($filters['filter_operator']);
   }
 }
