@@ -47,7 +47,7 @@ class CmeCampaign
       {
         $filtersArray  = (array)$filters;
         $data->filters = $filtersArray;
-        if(FilterHelper::isValidFilters($filtersArray))
+        if(!FilterHelper::isValidFilters($filtersArray))
         {
           $data->filters = null;
         }
@@ -123,9 +123,10 @@ class CmeCampaign
   public function create(CampaignData $data)
   {
     $data->created = time();
-    if(is_array($data->filters))
+    $data->filters = json_encode($data->filters);
+    if(!FilterHelper::isValidFilters($data->filters))
     {
-      $data->filters = json_encode($data->filters);
+      $data->filters = null;
     }
     $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
       $data->toArray()
