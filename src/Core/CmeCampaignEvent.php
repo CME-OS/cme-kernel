@@ -132,6 +132,16 @@ class CmeCampaignEvent
    *
    * @return bool|int
    */
+  public function create(CampaignEventData $data)
+  {
+    return $this->_create($data);
+  }
+
+  /**
+   * @param CampaignEventData $data
+   *
+   * @return bool|int
+   */
   public function trackClick(CampaignEventData $data)
   {
     $data->eventType = EventType::CLICKED;
