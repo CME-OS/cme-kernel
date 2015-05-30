@@ -154,7 +154,7 @@ class ListHelper
       $campaign = (new CmeCampaign())->get($campaignId);
       if($campaign->filters)
       {
-        $sql       = FilterHelper::buildSql(json_decode($campaign->filters));
+        $sql       = FilterHelper::buildSql($campaign->filters);
         $filterSql = 'WHERE ' . $sql;
       }
     }

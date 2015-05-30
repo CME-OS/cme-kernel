@@ -41,6 +41,7 @@ class CmeCampaign
     if($campaign)
     {
       $data = CampaignData::hydrate(head($campaign));
+      $data->filters = (array)json_decode($data->filters);
     }
     return $data;
   }
@@ -112,6 +113,10 @@ class CmeCampaign
   public function create(CampaignData $data)
   {
     $data->created = time();
+    if(is_array($data->filters))
+    {
+      $data->filters = json_encode($data->filters);
+    }
     $result        = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
       $data->toArray()
     );
@@ -134,7 +139,7 @@ class CmeCampaign
       $data->tested    = 0;
       $data->previewed = 0;
     }
-    if(isset($data->filters))
+    if(is_array($data->filters))
     {
       $data->filters = json_encode($data->filters);
     }

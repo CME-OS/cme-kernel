@@ -6,18 +6,18 @@ namespace CmeKernel\Helpers;
 
 class FilterHelper
 {
-  public static function buildSql($filters)
+  public static function buildSql(array $filters)
   {
     $sql = "";
     if($filters)
     {
-      $filtersCount = count($filters->filter_field);
+      $filtersCount = count($filters['filter_field']);
       $filterGroups = [];
       for($i = 0; $i < $filtersCount; $i++)
       {
-        $field    = $filters->filter_field[$i];
-        $operator = $filters->filter_operator[$i];
-        $value    = $filters->filter_value[$i];
+        $field    = $filters['filter_field'][$i];
+        $operator = $filters['filter_operator'][$i];
+        $value    = $filters['filter_value'][$i];
 
         $filterGroups[$field][] = "`" . $field . "`" . $operator . "'" . $value . "'";
       }
