@@ -52,6 +52,10 @@ class CmeCampaign
           $data->filters = null;
         }
       }
+      else
+      {
+        $data->filters = null;
+      }
     }
     return $data;
   }
@@ -123,8 +127,11 @@ class CmeCampaign
   public function create(CampaignData $data)
   {
     $data->created = time();
-    $data->filters = json_encode($data->filters);
     if(!FilterHelper::isValidFilters($data->filters))
+    {
+      $data->filters = json_encode($data->filters);
+    }
+    else
     {
       $data->filters = null;
     }
