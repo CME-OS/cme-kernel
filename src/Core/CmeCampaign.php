@@ -40,8 +40,12 @@ class CmeCampaign
     $data = false;
     if($campaign)
     {
-      $data = CampaignData::hydrate(head($campaign));
-      $data->filters = (array)json_decode($data->filters);
+      $data    = CampaignData::hydrate(head($campaign));
+      $filters = json_decode($data->filters);
+      if($filters)
+      {
+        $data->filters = (array)$filters;
+      }
     }
     return $data;
   }
@@ -117,7 +121,7 @@ class CmeCampaign
     {
       $data->filters = json_encode($data->filters);
     }
-    $result        = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
+    $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
       $data->toArray()
     );
 
