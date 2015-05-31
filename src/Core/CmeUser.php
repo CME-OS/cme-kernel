@@ -6,37 +6,59 @@
 namespace CmeKernel\Core;
 
 use CmeData\UserData;
+use CmeKernel\Exceptions\InvalidDataException;
 
 class CmeUser
 {
   private $_tableName = "users";
 
+  /**
+   * @param int $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result) ? true : false;
+    if((int)$id > 0)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid User ID");
+    }
   }
 
   /**
    * @param $id
    *
-   * @return bool| UserData
+   * @return bool|UserData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $user = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($user)
+    if((int)$id > 0)
     {
-      $data = UserData::hydrate(head($user));
+      $user = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($user)
+      {
+        $data = UserData::hydrate(head($user));
+      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid User ID");
+    }
   }
 
   /**
@@ -69,7 +91,9 @@ class CmeUser
   /**
    * @param UserData $data
    *
-   * @return bool|int $id
+   * @return int $userId
+   * @throws InvalidDataException
+   * @throws \Exception
    */
   public function create(UserData $data)
   {
@@ -77,39 +101,63 @@ class CmeUser
     $data->createdAt = date('Y-m-d H:i:s');
     $data->updatedAt = date('Y-m-d H:i:s');
     $data->active    = 1;
-    $id              = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->insertGetId($data->toArray());
+    if($data->validate())
+    {
+      $id = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId($data->toArray());
 
-    return $id;
+      return $id;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param UserData $data
    *
    * @return bool
+   * @throws InvalidDataException
+   * @throws \Exception
    */
   public function update(UserData $data)
   {
-    //TODO: write logic for updating users
-    //need to think of which fields should be updatable
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $data->id)
-      ->update($data->toArray());
+    if($data->validate())
+    {
+      //TODO: write logic for updating users
+      //need to think of which fields should be updatable
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $data->id)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param int $id
    *
    * @return bool
+   * @throws \Exception
    */
   public function delete($id)
   {
-    CmeDatabase::conn()->table($this->_tableName)
-      ->delete($id);
+    if((int)$id > 0)
+    {
+      CmeDatabase::conn()->table($this->_tableName)
+        ->delete($id);
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid User ID");
+    }
   }
 }

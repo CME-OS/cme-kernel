@@ -6,37 +6,59 @@
 namespace CmeKernel\Core;
 
 use CmeData\TemplateData;
+use CmeKernel\Exceptions\InvalidDataException;
 
 class CmeTemplate
 {
   private $_tableName = "templates";
 
+  /**
+   * @param int $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result) ? true : false;
+    if((int)$id > 0)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid Template ID");
+    }
   }
 
   /**
-   * @param $id
+   * @param int $id
    *
-   * @return bool| TemplateData
+   * @return bool|TemplateData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $template = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($template)
+    if((int)$id > 0)
     {
-      $data = TemplateData::hydrate(head($template));
+      $template = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($template)
+      {
+        $data = TemplateData::hydrate(head($template));
+      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid Template ID");
+    }
   }
 
   /**
@@ -66,6 +88,12 @@ class CmeTemplate
     return $return;
   }
 
+  /**
+   * @param string $field
+   *
+   * @return array
+   * @throws \Exception
+   */
   public function getKeyedListFor($field)
   {
     return CmeDatabase::conn()->table($this->_tableName)
@@ -76,48 +104,74 @@ class CmeTemplate
   /**
    * @param TemplateData $data
    *
-   * @return bool|int $id
+   * @return int $templateId
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function create(TemplateData $data)
   {
     $data->id      = null;
     $data->created = time();
-    $id            = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->insertGetId(
-        $data->toArray()
-      );
+    if($data->validate())
+    {
+      $id = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId(
+          $data->toArray()
+        );
 
-    return $id;
+      return $id;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param TemplateData $data
    *
    * @return bool
+   * @throws InvalidDataException
+   * @throws \Exception
    */
   public function update(TemplateData $data)
   {
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $data->id)
-      ->update($data->toArray());
+    if($data->validate())
+    {
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $data->id)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param int $id
    *
    * @return bool
+   * @throws \Exception
    */
   public function delete($id)
   {
-    $data            = new TemplateData();
-    $data->deletedAt = time();
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $id)
-      ->update($data->toArray());
+    if((int)$id > 0)
+    {
+      $data            = new TemplateData();
+      $data->deletedAt = time();
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $id)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Template ID");
+    }
   }
 }

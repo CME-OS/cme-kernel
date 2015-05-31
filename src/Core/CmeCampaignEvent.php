@@ -5,76 +5,110 @@
 
 namespace CmeKernel\Core;
 
-use CmeData\BrandData;
 use CmeData\CampaignEventData;
 use CmeData\UnsubscribeData;
 use CmeKernel\Enums\EventType;
+use CmeKernel\Exceptions\InvalidDataException;
 
 class CmeCampaignEvent
 {
   private $_tableName = "campaign_events";
 
   /**
-   * @param $id
+   * @param int $id
    *
-   * @return bool| BrandData
+   * @return bool|CampaignEventData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $event = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['event_id' => $id])
-      ->get();
-
-    $data = false;
-    if($event)
+    if((int)$id > 0)
     {
-      $data = CampaignEventData::hydrate(head($event));
+      $event = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['event_id' => $id])
+        ->get();
+
+      $data = false;
+      if($event)
+      {
+        $data = CampaignEventData::hydrate(head($event));
+      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid Event ID");
+    }
   }
 
   /**
-   * @param $id - Campaign ID
+   * @param int $campaignId
    *
    * @return int
+   * @throws \Exception
    */
-  public function getSentMessages($id)
+  public function getSentMessages($campaignId)
   {
-    return CmeDatabase::conn()->table($this->_tableName)->where(
-      ['campaign_id' => $id, 'event_type' => 'Sent']
-    )->count();
+    if((int)$campaignId)
+    {
+      return CmeDatabase::conn()->table($this->_tableName)->where(
+        ['campaign_id' => $campaignId, 'event_type' => 'Sent']
+      )->count();
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 
   /**
    * @param CampaignEventData $data
    *
    * @return bool
+   * @throws InvalidDataException
+   * @throws \Exception
    */
   public function update(CampaignEventData $data)
   {
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $data->eventId)
-      ->update($data->toArray());
+    if($data->validate())
+    {
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $data->eventId)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
-   * @param int $id
+   * @param $id
    *
    * @return bool
+   * @throws \Exception
    */
   public function delete($id)
   {
-    CmeDatabase::conn()->table($this->_tableName)->delete($id);
-    return true;
+    if((int)$id > 0)
+    {
+      CmeDatabase::conn()->table($this->_tableName)->delete($id);
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Event ID");
+    }
   }
 
   /**
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackQueue(CampaignEventData $data)
   {
@@ -86,6 +120,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackOpen(CampaignEventData $data)
   {
@@ -97,6 +132,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackUnsubscribe(CampaignEventData $data)
   {
@@ -131,6 +167,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function create(CampaignEventData $data)
   {
@@ -141,6 +178,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackClick(CampaignEventData $data)
   {
@@ -152,6 +190,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackSend(CampaignEventData $data)
   {
@@ -163,6 +202,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackBounce(CampaignEventData $data)
   {
@@ -174,6 +214,7 @@ class CmeCampaignEvent
    * @param CampaignEventData $data
    *
    * @return bool|int
+   * @throws InvalidDataException
    */
   public function trackFail(CampaignEventData $data)
   {
@@ -184,18 +225,27 @@ class CmeCampaignEvent
   /**
    * @param CampaignEventData $data
    *
-   * @return bool|int $id
+   * @return int
+   * @throws InvalidDataException
+   * @throws \Exception
    */
   private function _create(CampaignEventData $data)
   {
     $data->eventId = null;
     $data->time    = time();
-    $id            = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->insertGetId(
-        $data->toArray()
-      );
+    if($data->validate())
+    {
+      $id            = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId(
+          $data->toArray()
+        );
 
-    return $id;
+      return $id;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 }

@@ -10,46 +10,71 @@ use CmeData\ListData;
 use CmeData\ListImportQueueData;
 use CmeData\SubscriberData;
 use CmeData\UnsubscribeData;
+use CmeKernel\Exceptions\InvalidDataException;
 use CmeKernel\Helpers\ListHelper;
+use Symfony\Component\Validator\Constraints\Collection;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class CmeList
 {
   private $_tableName = "lists";
 
+  /**
+   * @param int $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result) ? true : false;
+    if((int)$id > 0)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 
   /**
-   * @param $id
+   * @param int $id
    *
-   * @return bool| ListData
+   * @return bool|ListData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $list = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($list)
+    if((int)$id > 0)
     {
-      $data      = ListData::hydrate(head($list));
-      $tableName = ListHelper::getTable($data->id);
-      $size      = 0;
-      //check if list table exists/
-      if(CmeDatabase::schema()->hasTable($tableName))
+      $list = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($list)
       {
-        $size = CmeDatabase::conn()->table($tableName)->count();
+        $data      = ListData::hydrate(head($list));
+        $tableName = ListHelper::getTable($data->id);
+        $size      = 0;
+        //check if list table exists/
+        if(CmeDatabase::schema()->hasTable($tableName))
+        {
+          $size = CmeDatabase::conn()->table($tableName)->count();
+        }
+        $data->setSize($size);
       }
-      $data->setSize($size);
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 
   /**
@@ -108,6 +133,8 @@ class CmeList
    * @param ListData $data
    *
    * @return bool|int $id
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function create(ListData $data)
   {
@@ -116,46 +143,69 @@ class CmeList
       $data->refreshInterval = null;
     }
 
-    $id = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->insertGetId(
-        $data->toArray()
-      );
+    if($data->validate())
+    {
+      $id = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId(
+          $data->toArray()
+        );
 
-    //create default schema
-    ListHelper::createListTable($id, ['email']);
+      //create default schema
+      ListHelper::createListTable($id, ['email']);
 
-    return $id;
+      return $id;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param ListData $data
    *
    * @return bool
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function update(ListData $data)
   {
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $data->id)
-      ->update($data->toArray());
-
-    return true;
+    if($data->validate())
+    {
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $data->id)
+        ->update($data->toArray());
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param int $id
    *
    * @return bool
+   * @throws \Exception
    */
   public function delete($id)
   {
-    $data            = new ListData();
-    $data->deletedAt = time();
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $id)
-      ->update($data->toArray());
+    if((int)$id > 0)
+    {
+      $data            = new ListData();
+      $data->deletedAt = time();
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $id)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 
   /**
@@ -164,36 +214,44 @@ class CmeList
    * @param int $limit
    *
    * @return SubscriberData[]
+   * @throws \Exception
    */
   public function getSubscribers($listId, $offset = 0, $limit = 1000)
   {
-    $tableName = ListHelper::getTable($listId);
-    //check if list table exists/
-    $subscribers = [];
-    if(CmeDatabase::schema()->hasTable($tableName))
+    if((int)$listId > 0)
     {
-      //if it does, fetch all subscribers and display
-      if(CmeDatabase::conn()->table($tableName)->count())
+      $tableName = ListHelper::getTable($listId);
+      //check if list table exists/
+      $subscribers = [];
+      if(CmeDatabase::schema()->hasTable($tableName))
       {
-        $result = CmeDatabase::conn()
-          ->table($tableName)
-          ->skip($offset)
-          ->take($limit)
-          ->get();
-
-        foreach($result as $row)
+        //if it does, fetch all subscribers and display
+        if(CmeDatabase::conn()->table($tableName)->count())
         {
-          $subscribers[] = SubscriberData::hydrate($row, false);
+          $result = CmeDatabase::conn()
+            ->table($tableName)
+            ->skip($offset)
+            ->take($limit)
+            ->get();
+
+          foreach($result as $row)
+          {
+            $subscribers[] = SubscriberData::hydrate($row, false);
+          }
         }
       }
-    }
 
-    return $subscribers;
+      return $subscribers;
+    }
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 
   /**
-   * @param $subscriberId
-   * @param $listId
+   * @param int $subscriberId
+   * @param int $listId
    *
    * @return bool|SubscriberData
    */
@@ -225,27 +283,36 @@ class CmeList
    * @param int            $listId
    *
    * @return bool
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function addSubscriber(SubscriberData $data, $listId)
   {
     unset($data->id);
     $data->dateCreated = date('Y-m-d H:i:s');
-    $added             = false;
-    if($listId)
+    if($data->validate())
     {
-      $table     = ListHelper::getTable($listId);
-      $dataArray = $data->toArray();
-
-      $columns = array_keys($dataArray);
-      //diff it, so we don't end up with duplicate column names
-      $columns = array_diff($columns, ListHelper::inBuiltFields());
-      ListHelper::createListTable($listId, $columns);
-
-      CmeDatabase::conn()->table($table)->insert($dataArray);
       $added = false;
-    }
+      if($listId)
+      {
+        $table     = ListHelper::getTable($listId);
+        $dataArray = $data->toArray();
 
-    return $added;
+        $columns = array_keys($dataArray);
+        //diff it, so we don't end up with duplicate column names
+        $columns = array_diff($columns, ListHelper::inBuiltFields());
+        ListHelper::createListTable($listId, $columns);
+
+        CmeDatabase::conn()->table($table)->insert($dataArray);
+        $added = false;
+      }
+
+      return $added;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
@@ -271,16 +338,30 @@ class CmeList
   }
 
   /**
-   * @param $email
+   * @param string $email
    *
    * @return bool
    * @throws \Exception
    */
   public function isUnsubscribed($email)
   {
-    $result = CmeDatabase::conn()->table('unsubscribes')
-      ->where('email', '=', $email)->get(['email']);
-    return ($result) ? true : false;
+    $validEmail = ListData::getValidator()->validate(
+      ['email' => $email],
+      $constraints = new Collection(
+        ['email' => [new Email(), new NotBlank()]]
+      )
+    );
+
+    if($validEmail)
+    {
+      $result = CmeDatabase::conn()->table('unsubscribes')
+        ->where('email', '=', $email)->get(['email']);
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid email address: " . $email);
+    }
   }
 
   /**
@@ -288,52 +369,91 @@ class CmeList
    *
    * @return bool
    * @throws \Exception
+   * @throws InvalidDataException
    */
   public function unsubscribe(UnsubscribeData $data)
   {
-    return CmeDatabase::conn()->table('unsubscribes')->insert($data->toArray());
+    if($data->validate())
+    {
+      return CmeDatabase::conn()->table('unsubscribes')->insert(
+        $data->toArray()
+      );
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
+  /**
+   * @param int $listId
+   *
+   * @return array
+   * @throws \Exception
+   */
   public function getColumns($listId)
   {
-    return CmeDatabase::schema()->getColumnListing(
-      ListHelper::getTable($listId)
-    );
+    if((int)$listId > 0)
+    {
+      return CmeDatabase::schema()->getColumnListing(
+        ListHelper::getTable($listId)
+      );
+    }
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 
   public function import(ListImportQueueData $data)
   {
     unset($data->id);
-    CmeDatabase::conn()->table('import_queue')->insert(
-      $data->toArray()
-    );
-
-    return true;
+    if($data->validate())
+    {
+      CmeDatabase::conn()->table('import_queue')->insert(
+        $data->toArray()
+      );
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
 
   /**
-   * @param int $listId - List ID
+   * @param int $listId
    *
    * @return CampaignData[]
+   * @throws \Exception
    */
   public function campaigns($listId)
   {
-    $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['list_id' => $listId])->get();
-
-    $return = [];
-    foreach($campaigns as $campaign)
+    if((int)$listId > 0)
     {
-      $campaign               = CampaignData::hydrate($campaign);
-      $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
-      $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
-      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
-        $campaign->smtpProviderId
-      );
-      $return[]               = $campaign;
-    }
+      $campaigns = CmeDatabase::conn()->table('campaigns')
+        ->where(['list_id' => $listId])->get();
 
-    return $return;
+      $return = [];
+      foreach($campaigns as $campaign)
+      {
+        $campaign               = CampaignData::hydrate($campaign);
+        $campaign->list         = CmeKernel::EmailList()->get(
+          $campaign->listId
+        );
+        $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
+        $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+          $campaign->smtpProviderId
+        );
+        $return[]               = $campaign;
+      }
+
+      return $return;
+    }
+    else
+    {
+      throw new \Exception("Invalid List ID");
+    }
   }
 }

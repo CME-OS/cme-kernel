@@ -10,6 +10,7 @@ namespace CmeKernel\Core;
 
 use CmeData\CampaignData;
 use CmeKernel\Enums\CampaignStatus;
+use CmeKernel\Exceptions\InvalidDataException;
 use CmeKernel\Helpers\CampaignHelper;
 use CmeKernel\Helpers\FilterHelper;
 use CmeKernel\Helpers\ListHelper;
@@ -18,46 +19,67 @@ class CmeCampaign
 {
   private $_tableName = "campaigns";
 
+  /**
+   * @param int $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result) ? true : false;
+    if((int)$id)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 
   /**
-   * @param $id
+   * @param int $id
    *
-   * @return CampaignData | bool
+   * @return bool|CampaignData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $campaign = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($campaign)
+    if((int)$id > 0)
     {
-      $data    = CampaignData::hydrate(head($campaign));
-      $filters = json_decode($data->filters);
-      if($filters)
+      $campaign = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($campaign)
       {
-        $filtersArray  = (array)$filters;
-        $data->filters = $filtersArray;
-        if(!FilterHelper::isValidFilters($filtersArray))
+        $data    = CampaignData::hydrate(head($campaign));
+        $filters = json_decode($data->filters);
+        if($filters)
+        {
+          $filtersArray  = (array)$filters;
+          $data->filters = $filtersArray;
+          if(!FilterHelper::isValidFilters($filtersArray))
+          {
+            $data->filters = null;
+          }
+        }
+        else
         {
           $data->filters = null;
         }
       }
-      else
-      {
-        $data->filters = null;
-      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 
   /**
@@ -96,18 +118,26 @@ class CmeCampaign
   /**
    * Returns the number of recipients for a given campaign and list combination
    *
-   * @param $id
-   * @param $listId
+   * @param int $id - Campaign ID
+   * @param int $listId
    *
    * @return mixed
+   * @throws \Exception
    */
   public function getRecipientCount($id, $listId)
   {
-    return ListHelper::count($listId, $id);
+    if((int)$id > 0 && (int)$listId > 0)
+    {
+      return ListHelper::count($listId, $id);
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign or List ID");
+    }
   }
 
   /**
-   * @param $field
+   * @param string $field
    *
    * @return array
    * @throws \Exception
@@ -122,84 +152,115 @@ class CmeCampaign
   /**
    * @param CampaignData $data
    *
-   * @return bool
+   * @return int $campaignId
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function create(CampaignData $data)
   {
     $data->created = time();
-    if(!FilterHelper::isValidFilters($data->filters))
+    if($data->validate())
     {
-      $data->filters = json_encode($data->filters);
+      if(!FilterHelper::isValidFilters($data->filters))
+      {
+        $data->filters = json_encode($data->filters);
+      }
+      else
+      {
+        $data->filters = null;
+      }
+      $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
+        $data->toArray()
+      );
+
+      return $result;
     }
     else
     {
-      $data->filters = null;
+      throw new InvalidDataException();
     }
-    $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
-      $data->toArray()
-    );
-
-    return $result;
   }
 
   /**
    * @param CampaignData $data
    *
    * @return bool
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function update(CampaignData $data)
   {
-    $campaign = $this->get($data->id);
-    //if content changed, force user to test & preview campaign as a
-    //safety measure
-    if($campaign->htmlContent != $data->htmlContent)
+    if($data->validate())
     {
-      $data->tested    = 0;
-      $data->previewed = 0;
-    }
-    if(FilterHelper::isValidFilters($data->filters))
-    {
-      $data->filters = json_encode($data->filters);
+      $campaign = $this->get($data->id);
+      //if content changed, force user to test & preview campaign as a
+      //safety measure
+      if($campaign->htmlContent != $data->htmlContent)
+      {
+        $data->tested    = 0;
+        $data->previewed = 0;
+      }
+      if(FilterHelper::isValidFilters($data->filters))
+      {
+        $data->filters = json_encode($data->filters);
+      }
+      else
+      {
+        $data->filters = null;
+      }
+
+      $data->sendTime = is_int($data->sendTime)
+        ? $data->sendTime : strtotime($data->sendTime);
+
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where(['id' => $data->id])
+        ->update(
+          $data->toArray()
+        );
+
+      return true;
     }
     else
     {
-      $data->filters = null;
+      throw new InvalidDataException();
     }
-
-    $data->sendTime = is_int($data->sendTime)
-      ? $data->sendTime : strtotime($data->sendTime);
-
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where(['id' => $data->id])
-      ->update(
-        $data->toArray()
-      );
-
-    return true;
   }
 
   /**
    * Duplicate or copies a campaign to ease campaign creation.
    *
    * @param $id
+   *
+   * @return int
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function copy($id)
   {
-    $campaign            = $this->get($id);
-    $campaign->id        = null;
-    $campaign->name      = $campaign->name . ' (COPY)';
-    $campaign->sendTime  = null;
-    $campaign->tested    = 0;
-    $campaign->previewed = 0;
-    $campaign->status    = 'Pending';
+    if((int)$id)
+    {
+      $campaign            = $this->get($id);
+      $campaign->id        = null;
+      $campaign->name      = $campaign->name . ' (COPY)';
+      $campaign->sendTime  = null;
+      $campaign->tested    = 0;
+      $campaign->previewed = 0;
+      $campaign->status    = 'Pending';
 
-    $this->create($campaign);
+      return $this->create($campaign);
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 
   /**
    * @param $id
    *
    * @return bool
+   * @throws \Exception
+   * @throws \InvalidDataException
    */
   public function delete($id)
   {
@@ -214,82 +275,114 @@ class CmeCampaign
   }
 
   /**
-   * @param int $id Campaign ID
+   * @param int $id - Campaign ID
    *
    * @return bool
+   * @throws \Exception
    */
   public function queue($id)
   {
-    if(CampaignHelper::buildQueueRanges($id))
+    if((int)$id > 0)
     {
-      //update status of campaign
-      CmeDatabase::conn()->table($this->_tableName)
-        ->where(['id' => $id])
-        ->update(['status' => CampaignStatus::QUEUING]);
+      if(CampaignHelper::buildQueueRanges($id))
+      {
+        //update status of campaign
+        CmeDatabase::conn()->table($this->_tableName)
+          ->where(['id' => $id])
+          ->update(['status' => CampaignStatus::QUEUING]);
+      }
+      return true;
     }
-    return true;
-  }
-
-  /**
-   * @param int $id Campaign ID
-   *
-   * @return bool
-   */
-  public function pause($id)
-  {
-    CmeDatabase::conn()
-      ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
-      ->update(['status' => CampaignStatus::PAUSED]);
-
-    //update status of campaign
-    CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->update(['status' => CampaignStatus::PAUSED]);
-
-    return true;
-  }
-
-  /**
-   * @param int $id Campaign ID
-   *
-   * @return bool
-   */
-  public function resume($id)
-  {
-    CmeDatabase::conn()
-      ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PAUSED])
-      ->update(['status' => CampaignStatus::PENDING]);
-
-    //update status of campaign
-    CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])->update(['status' => CampaignStatus::QUEUED]);
-
-    return true;
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 
   /**
    * @param int $id - Campaign ID
    *
    * @return bool
+   * @throws \Exception
+   */
+  public function pause($id)
+  {
+    if((int)$id > 0)
+    {
+      CmeDatabase::conn()
+        ->table('message_queue')
+        ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
+        ->update(['status' => CampaignStatus::PAUSED]);
+
+      //update status of campaign
+      CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->update(['status' => CampaignStatus::PAUSED]);
+
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
+  }
+
+  /**
+   * @param int $id - Campaign ID
+   *
+   * @return bool
+   * @throws \Exception
+   */
+  public function resume($id)
+  {
+    if((int)$id > 0)
+    {
+      CmeDatabase::conn()
+        ->table('message_queue')
+        ->where(['campaign_id' => $id, 'status' => CampaignStatus::PAUSED])
+        ->update(['status' => CampaignStatus::PENDING]);
+
+      //update status of campaign
+      CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])->update(['status' => CampaignStatus::QUEUED]);
+
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
+  }
+
+  /**
+   * @param int $id - Campaign ID
+   *
+   * @return bool
+   * @throws \Exception
    */
   public function abort($id)
   {
-    //delete pending messages from the queue
-    CmeDatabase::conn()
-      ->table('message_queue')
-      ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
-      ->delete();
+    if((int)$id > 0)
+    {
+      //delete pending messages from the queue
+      CmeDatabase::conn()
+        ->table('message_queue')
+        ->where(['campaign_id' => $id, 'status' => CampaignStatus::PENDING])
+        ->delete();
 
-    //update status of campaign
-    CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->update(['status' => CampaignStatus::ABORTED]);
+      //update status of campaign
+      CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->update(['status' => CampaignStatus::ABORTED]);
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Campaign ID");
+    }
   }
 }

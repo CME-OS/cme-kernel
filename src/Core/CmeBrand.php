@@ -7,37 +7,59 @@ namespace CmeKernel\Core;
 
 use CmeData\BrandData;
 use CmeData\CampaignData;
+use CmeKernel\Exceptions\InvalidDataException;
 
 class CmeBrand
 {
   private $_tableName = "brands";
 
+  /**
+   * @param $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result) ? true : false;
+    if((int)$id > 0)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Invalid Brand ID");
+    }
   }
 
   /**
    * @param $id
    *
-   * @return bool| BrandData
+   * @return bool|BrandData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $brand = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($brand)
+    if((int)$id > 0)
     {
-      $data = BrandData::hydrate(head($brand));
+      $brand = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($brand)
+      {
+        $data = BrandData::hydrate(head($brand));
+      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid Brand ID");
+    }
   }
 
   /**
@@ -67,6 +89,9 @@ class CmeBrand
     return $return;
   }
 
+  /**
+   * @return array
+   */
   public function getColumns()
   {
     return CmeDatabase::schema()->getColumnListing(
@@ -77,74 +102,109 @@ class CmeBrand
   /**
    * @param BrandData $data
    *
-   * @return bool|int $id
+   * @return int $brandId
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function create(BrandData $data)
   {
     $data->id           = null;
     $data->brandCreated = time();
-    $id                 = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->insertGetId(
-        $data->toArray()
-      );
+    if($data->validate())
+    {
+      $id = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId(
+          $data->toArray()
+        );
 
-    return $id;
+      return $id;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param BrandData $data
    *
    * @return bool
+   * @throws \Exception
+   * @throws InvalidDataException
    */
   public function update(BrandData $data)
   {
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $data->id)
-      ->update($data->toArray());
-
-    return true;
+    if($data->validate())
+    {
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $data->id)
+        ->update($data->toArray());
+      return true;
+    }
+    else
+    {
+      throw new InvalidDataException();
+    }
   }
 
   /**
    * @param int $id
    *
    * @return bool
+   * @throws \Exception
    */
   public function delete($id)
   {
-    $data                 = new BrandData();
-    $data->brandDeletedAt = time();
-    CmeDatabase::conn()->table($this->_tableName)
-      ->where('id', '=', $id)
-      ->update($data->toArray());
+    if((int)$id > 0)
+    {
+      $data                 = new BrandData();
+      $data->brandDeletedAt = time();
+      CmeDatabase::conn()->table($this->_tableName)
+        ->where('id', '=', $id)
+        ->update($data->toArray());
 
-    return true;
+      return true;
+    }
+    else
+    {
+      throw new \Exception("Invalid Brand ID");
+    }
   }
 
 
   /**
-   * @param int $brandId - Brand ID
+   * @param int $brandId
    *
    * @return CampaignData[]
+   * @throws \Exception
    */
   public function campaigns($brandId)
   {
-    $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['brand_id' => $brandId])->get();
-
-    $return = [];
-    foreach($campaigns as $campaign)
+    if((int)$brandId > 0)
     {
-      $campaign               = CampaignData::hydrate($campaign);
-      $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
-      $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
-      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
-        $campaign->smtpProviderId
-      );
-      $return[]               = $campaign;
-    }
+      $campaigns = CmeDatabase::conn()->table('campaigns')
+        ->where(['brand_id' => $brandId])->get();
 
-    return $return;
+      $return = [];
+      foreach($campaigns as $campaign)
+      {
+        $campaign               = CampaignData::hydrate($campaign);
+        $campaign->list         = CmeKernel::EmailList()->get(
+          $campaign->listId
+        );
+        $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
+        $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+          $campaign->smtpProviderId
+        );
+        $return[]               = $campaign;
+      }
+
+      return $return;
+    }
+    else
+    {
+      throw new \Exception("Invalid Brand ID");
+    }
   }
 }

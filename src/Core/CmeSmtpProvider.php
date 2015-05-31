@@ -7,38 +7,60 @@ namespace CmeKernel\Core;
 
 use CmeData\CampaignData;
 use CmeData\SmtpProviderData;
+use CmeKernel\Exceptions\InvalidDataException;
 use Illuminate\Encryption\Encrypter;
 
 class CmeSmtpProvider
 {
   private $_tableName = "smtp_providers";
 
+  /**
+   * @param int $id
+   *
+   * @return bool
+   * @throws \Exception
+   */
   public function exists($id)
   {
-    $result = CmeDatabase::conn()->select(
-      "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
-    );
-    return ($result)? true : false;
+    if((int)$id > 0)
+    {
+      $result = CmeDatabase::conn()->select(
+        "SELECT id FROM " . $this->_tableName . " WHERE id = " . $id
+      );
+      return ($result) ? true : false;
+    }
+    else
+    {
+      throw new \Exception("Inavalid SMTP Provider ID");
+    }
   }
 
   /**
    * @param $id
    *
-   * @return bool| SmtpProviderData
+   * @return bool|SmtpProviderData
+   * @throws \Exception
    */
   public function get($id)
   {
-    $provider = CmeDatabase::conn()
-      ->table($this->_tableName)
-      ->where(['id' => $id])
-      ->get();
-
-    $data = false;
-    if($provider)
+    if((int)$id > 0)
     {
-      $data = SmtpProviderData::hydrate(head($provider));
+      $provider = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->where(['id' => $id])
+        ->get();
+
+      $data = false;
+      if($provider)
+      {
+        $data = SmtpProviderData::hydrate(head($provider));
+      }
+      return $data;
     }
-    return $data;
+    else
+    {
+      throw new \Exception("Invalid SMTP Provider ID");
+    }
   }
 
   /**
@@ -73,6 +95,7 @@ class CmeSmtpProvider
    * @param string           $encryptionKey
    *
    * @return int
+   * @throws InvalidDataException
    * @throws \Exception
    */
   public function create(SmtpProviderData $data, $encryptionKey)
@@ -82,13 +105,20 @@ class CmeSmtpProvider
       $encrypter      = new Encrypter($encryptionKey);
       $data->username = $encrypter->encrypt($data->username);
       $data->password = $encrypter->encrypt($data->password);
-      $id             = CmeDatabase::conn()
-        ->table($this->_tableName)
-        ->insertGetId(
-          $data->toArray()
-        );
+      if($data->validate())
+      {
+        $id = CmeDatabase::conn()
+          ->table($this->_tableName)
+          ->insertGetId(
+            $data->toArray()
+          );
 
-      return $id;
+        return $id;
+      }
+      else
+      {
+        throw new InvalidDataException();
+      }
     }
     else
     {
@@ -103,6 +133,7 @@ class CmeSmtpProvider
    * @param string           $encryptionKey
    *
    * @return bool
+   * @throws InvalidDataException
    * @throws \Exception
    */
   public function update(SmtpProviderData $data, $encryptionKey)
@@ -120,11 +151,18 @@ class CmeSmtpProvider
         $data->password = $encrypter->encrypt($data->password);
       }
 
-      CmeDatabase::conn()->table($this->_tableName)
-        ->where('id', '=', $data->id)
-        ->update($data->toArray());
+      if($data->validate())
+      {
+        CmeDatabase::conn()->table($this->_tableName)
+          ->where('id', '=', $data->id)
+          ->update($data->toArray());
 
-      return true;
+        return true;
+      }
+      else
+      {
+        throw new InvalidDataException();
+      }
     }
     else
     {
@@ -166,27 +204,37 @@ class CmeSmtpProvider
 
 
   /**
-   * @param int $smtpProviderId - SMTP Provider ID
+   * @param $smtpProviderId
    *
    * @return CampaignData[]
+   * @throws \Exception
    */
   public function campaigns($smtpProviderId)
   {
-    $campaigns = CmeDatabase::conn()->table('campaigns')
-      ->where(['smtp_provider_id' => $smtpProviderId])->get();
-
-    $return = [];
-    foreach($campaigns as $campaign)
+    if((int)$smtpProviderId > 0)
     {
-      $campaign               = CampaignData::hydrate($campaign);
-      $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
-      $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
-      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
-        $campaign->smtpProviderId
-      );
-      $return[]               = $campaign;
-    }
+      $campaigns = CmeDatabase::conn()->table('campaigns')
+        ->where(['smtp_provider_id' => $smtpProviderId])->get();
 
-    return $return;
+      $return = [];
+      foreach($campaigns as $campaign)
+      {
+        $campaign               = CampaignData::hydrate($campaign);
+        $campaign->list         = CmeKernel::EmailList()->get(
+          $campaign->listId
+        );
+        $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
+        $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+          $campaign->smtpProviderId
+        );
+        $return[]               = $campaign;
+      }
+
+      return $return;
+    }
+    else
+    {
+      throw new \Exception("Invalid SMTP Provider ID");
+    }
   }
 }

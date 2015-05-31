@@ -26,7 +26,7 @@ class CmeAnalytics
     $campaign  = CmeKernel::Campaign()->get($campaignId);
     $listTable = ListHelper::getTable($campaign->listId);
 
-    $eventType = $eventType->getValue();
+    $eventType   = $eventType->getValue();
     $subscribers = CmeDatabase::conn()->select(
       "SELECT subscriber_id, time FROM campaign_events
       WHERE campaign_id = $campaignId
@@ -59,13 +59,17 @@ class CmeAnalytics
     }
 
     //sort results
-    usort($result, function($a, $b){
-      if($a['time'] == $b['time'])
+    usort(
+      $result,
+      function ($a, $b)
       {
-        return 0;
+        if($a['time'] == $b['time'])
+        {
+          return 0;
+        }
+        return ($a['time'] > $b['time']) ? -1 : 1;
       }
-      return ($a['time'] > $b['time'])? -1 : 1;
-    });
+    );
 
     return $result;
   }
@@ -77,9 +81,10 @@ class CmeAnalytics
    */
   public function getEventCounts($campaignId)
   {
+    $campaignId = (int)$campaignId;
     $eventTypes = EventType::getPossibleValues();
-    $stats   = [];
-    $counted = [];
+    $stats      = [];
+    $counted    = [];
     foreach($eventTypes as $type)
     {
       $stats[$type]['unique'] = 0;
@@ -117,11 +122,12 @@ class CmeAnalytics
 
   public function getLinkActivity($campaignId)
   {
-    $clicks = CmeDatabase::conn()->select(
+    $campaignId = (int)$campaignId;
+    $clicks     = CmeDatabase::conn()->select(
       "SELECT count(*) as total, subscriber_id, reference FROM campaign_events
       WHERE campaign_id = $campaignId
       AND subscriber_id > 0
-      AND event_type='".EventType::CLICKED."'
+      AND event_type='" . EventType::CLICKED . "'
       GROUP BY reference, subscriber_id"
     );
 
