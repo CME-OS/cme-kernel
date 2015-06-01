@@ -194,9 +194,13 @@ class CmeBrand
           $campaign->listId
         );
         $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
-        $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
-          $campaign->smtpProviderId
-        );
+        $campaign->smtpProvider = null;
+        if($campaign->smtpProviderId)
+        {
+          $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+            $campaign->smtpProviderId
+          );
+        }
         $return[]               = $campaign;
       }
 
