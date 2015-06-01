@@ -106,9 +106,12 @@ class CmeCampaign
       $campaign               = CampaignData::hydrate($row);
       $campaign->list         = CmeKernel::EmailList()->get($campaign->listId);
       $campaign->brand        = CmeKernel::Brand()->get($campaign->brandId);
-      $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
-        $campaign->smtpProviderId
-      );
+      if($campaign->smtpProviderId)
+      {
+        $campaign->smtpProvider = CmeKernel::SmtpProvider()->get(
+          $campaign->smtpProviderId
+        );
+      }
       $return[]               = $campaign;
     }
 
