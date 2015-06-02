@@ -144,6 +144,8 @@ class CmeSmtpProvider
       $data->username = $encrypter->encrypt($data->username);
       if($data->password == "")
       {
+        //we set password to null here so it does not get included
+        // in the updated column
         $data->password = null;
       }
       else
