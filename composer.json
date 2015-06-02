@@ -14,6 +14,7 @@
     "illuminate/database":   "4.2.*",
     "illuminate/encryption": "4.2.*",
     "illuminate/log":        "4.2.*",
+    "illuminate/hashing":    "4.2.*",
     "garoevans/php-enum":    "1.2.0",
     "cme/cme-data":          "dev-master"
   },

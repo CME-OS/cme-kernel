@@ -7,6 +7,7 @@ namespace CmeKernel\Core;
 
 use CmeData\UserData;
 use CmeKernel\Exceptions\InvalidDataException;
+use Illuminate\Hashing\BcryptHasher;
 
 class CmeUser
 {
@@ -103,7 +104,8 @@ class CmeUser
     $data->active    = 1;
     if($data->validate())
     {
-      $id = CmeDatabase::conn()
+      $data->password = (new BcryptHasher())->make($data->password);
+      $id             = CmeDatabase::conn()
         ->table($this->_tableName)
         ->insertGetId($data->toArray());
 
@@ -124,10 +126,19 @@ class CmeUser
    */
   public function update(UserData $data)
   {
+    if($data->password == "")
+    {
+      //we set password to null here so it does not get included
+      // in the updated column
+      $data->password = null;
+    }
+    else
+    {
+      $data->password = (new BcryptHasher())->make($data->password);
+    }
+
     if($data->validate())
     {
-      //TODO: write logic for updating users
-      //need to think of which fields should be updatable
       CmeDatabase::conn()->table($this->_tableName)
         ->where('id', '=', $data->id)
         ->update($data->toArray());
