@@ -164,7 +164,7 @@ class CmeCampaign
     $data->created = time();
     if($data->validate())
     {
-      if(!FilterHelper::isValidFilters($data->filters))
+      if(FilterHelper::isValidFilters($data->filters))
       {
         $data->filters = json_encode($data->filters);
       }
@@ -172,9 +172,20 @@ class CmeCampaign
       {
         $data->filters = null;
       }
-      $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
-        $data->toArray()
-      );
+      try
+      {
+        $result = CmeDatabase::conn()->table($this->_tableName)->insertGetId(
+          $data->toArray()
+        );
+      }
+      catch(\Exception $e)
+      {
+        if($e->getCode() == 23000)
+        {
+          $this->update($data);
+          $result = $data->id;
+        }
+      }
 
       return $result;
     }
@@ -211,9 +222,6 @@ class CmeCampaign
       {
         $data->filters = null;
       }
-
-      $data->sendTime = is_int($data->sendTime)
-        ? $data->sendTime : strtotime($data->sendTime);
 
       CmeDatabase::conn()->table($this->_tableName)
         ->where(['id' => $data->id])
