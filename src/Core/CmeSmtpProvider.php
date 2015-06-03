@@ -102,12 +102,12 @@ class CmeSmtpProvider
   {
     if($encryptionKey)
     {
-      $encrypter      = new Encrypter($encryptionKey);
-      $data->username = $encrypter->encrypt($data->username);
-      $data->password = $encrypter->encrypt($data->password);
       if($data->validate())
       {
-        $id = CmeDatabase::conn()
+        $encrypter      = new Encrypter($encryptionKey);
+        $data->username = $encrypter->encrypt($data->username);
+        $data->password = $encrypter->encrypt($data->password);
+        $id             = CmeDatabase::conn()
           ->table($this->_tableName)
           ->insertGetId(
             $data->toArray()
@@ -140,21 +140,19 @@ class CmeSmtpProvider
   {
     if($encryptionKey)
     {
-      $encrypter      = new Encrypter($encryptionKey);
-      $data->username = $encrypter->encrypt($data->username);
       if($data->password == "")
       {
         //we set password to null here so it does not get included
         // in the updated column
         $data->password = null;
       }
-      else
-      {
-        $data->password = $encrypter->encrypt($data->password);
-      }
 
       if($data->validate())
       {
+        $encrypter      = new Encrypter($encryptionKey);
+        $data->password = $encrypter->encrypt($data->password);
+        $data->username = $encrypter->encrypt($data->username);
+
         CmeDatabase::conn()->table($this->_tableName)
           ->where('id', '=', $data->id)
           ->update($data->toArray());
