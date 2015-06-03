@@ -95,11 +95,11 @@ class CmeAnalytics
     do
     {
       $events = CmeDatabase::conn()->select(
-        "SELECT * FROM campaign_events
+        "SELECT event_id, event_type, subscriber_id FROM campaign_events
          WHERE event_id > $lastId
          AND campaign_id = $campaignId
          AND subscriber_id > 0
-         ORDER BY event_id ASC LIMIT 1000"
+         ORDER BY event_id ASC LIMIT 20000"
       );
       foreach($events as $event)
       {
