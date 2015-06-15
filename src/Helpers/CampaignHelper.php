@@ -31,8 +31,8 @@ class CampaignHelper
       {
         //get min and max id of campaign list
         $Ids   = ListHelper::getMinMaxIds($campaign->listId);
-        $minId = $Ids->minId;
-        $maxId = $Ids->maxId;
+        $minId = $Ids['minId'];
+        $maxId = $Ids['maxId'];
 
         //build ranges
         for($i = $minId; $i <= $maxId; $i++)
