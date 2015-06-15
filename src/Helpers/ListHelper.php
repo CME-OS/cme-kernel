@@ -49,7 +49,8 @@ class ListHelper
               //if column does not already exist, create it
               if(!CmeDatabase::schema()->hasColumn($tableName, $column))
               {
-                $table->string(Str::slug($column, '_'), 225)->after('email');
+                $table->string(Str::slug($column, '_'), 225)
+                  ->nullable()->default('')->after('email');
               }
             }
           }
@@ -67,7 +68,8 @@ class ListHelper
             $table->unique('email');
             foreach($columns as $column)
             {
-              $table->string(Str::slug($column, '_'), 225);
+              $table->string(Str::slug($column, '_'), 225)
+                ->nullable()->default('');
             }
             $table->integer('test_subscriber', 0);
             $table->timestamp('date_created');
