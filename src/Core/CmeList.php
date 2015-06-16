@@ -303,8 +303,7 @@ class CmeList
         $columns = array_diff($columns, ListHelper::inBuiltFields());
         ListHelper::createListTable($listId, $columns);
 
-        CmeDatabase::conn()->table($table)->insert($dataArray);
-        $added = false;
+        $added = CmeDatabase::conn()->table($table)->insert($dataArray);
       }
 
       return $added;
