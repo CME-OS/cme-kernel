@@ -103,12 +103,22 @@ class ListHelper
             ) . "')";
         }
 
+        $columns = array_keys($subscribers[0]);
+        $columns[] = 'date_created';
+
+        $updateArr = [];
+        foreach($columns as $column)
+        {
+          $updateArr[] = "`$column` = VALUES($column)";
+        }
+
         CmeDatabase::conn()->insert(
           sprintf(
-            "INSERT IGNORE INTO %s (%s) VALUES %s",
+            "INSERT IGNORE INTO %s (%s) VALUES %s ON DUPLICATE KEY UPDATE %s",
             $tableName,
-            implode(',', array_keys($subscribers[0])) . ', date_created',
-            implode(',', $batch)
+            implode(',', $columns),
+            implode(',', $batch),
+            implode(',', $updateArr)
           )
         );
       }
