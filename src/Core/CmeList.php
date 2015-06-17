@@ -303,7 +303,23 @@ class CmeList
         $columns = array_diff($columns, ListHelper::inBuiltFields());
         ListHelper::createListTable($listId, $columns);
 
-        $added = CmeDatabase::conn()->table($table)->insert($dataArray);
+        $updateArr = [];
+        $values    = [];
+        foreach($dataArray as $column => $value)
+        {
+          $updateArr[] = "`$column` = '$value'";
+          $values[]    = "'$value'";
+        }
+
+        $added = CmeDatabase::conn()->insert(
+          sprintf(
+            "INSERT IGNORE INTO %s (`%s`) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
+            $table,
+            implode('`,`', array_keys($dataArray)),
+            implode(',', $values),
+            implode(',', $updateArr)
+          )
+        );
       }
 
       return $added;
