@@ -182,8 +182,13 @@ class CampaignHelper
   private static function _generateTrackLink($type, $data)
   {
     $domain = CmeKernel::Config()->cmeHost;
-    return "http://" . $domain . "/track/" . $type . "/" . $data['campaignId']
-    . "_" . $data['listId'] . "_" . $data['subscriberId'];
+    $trackLink = "http://" . $domain . "/track/" . $type . "/";
+
+    $messageId = $data['campaignId'] . "_" . $data['listId']
+      . "_" . $data['subscriberId'];
+
+    $trackLink .= base64_encode(Crypt::encrypt($messageId));
+    return $trackLink;
   }
 
   public static function getPriority($priority)
