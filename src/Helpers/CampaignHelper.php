@@ -13,6 +13,7 @@ use CmeData\CampaignData;
 use CmeKernel\Core\CmeCampaign;
 use CmeKernel\Core\CmeDatabase;
 use CmeKernel\Core\CmeKernel;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Log;
 
 class CampaignHelper
@@ -181,13 +182,14 @@ class CampaignHelper
 
   private static function _generateTrackLink($type, $data)
   {
-    $domain = CmeKernel::Config()->cmeHost;
+    $domain    = CmeKernel::Config()->cmeHost;
     $trackLink = "http://" . $domain . "/track/" . $type . "/";
 
     $messageId = $data['campaignId'] . "_" . $data['listId']
       . "_" . $data['subscriberId'];
 
-    $trackLink .= base64_encode(Crypt::encrypt($messageId));
+    $encrypter = new Encrypter(CmeKernel::Config()->key);
+    $trackLink .= base64_encode($encrypter->encrypt($messageId));
     return $trackLink;
   }
 
@@ -208,7 +210,7 @@ class CampaignHelper
         $name = "High";
         break;
       default:
-        $name = "Unknowm";
+        $name = "Unknown";
     }
 
     return $name;
