@@ -8,7 +8,6 @@ namespace CmeKernel\Core;
 use CmeData\CampaignData;
 use CmeData\SmtpProviderData;
 use CmeKernel\Exceptions\InvalidDataException;
-use Illuminate\Encryption\Encrypter;
 
 class CmeSmtpProvider
 {
@@ -92,39 +91,26 @@ class CmeSmtpProvider
 
   /**
    * @param SmtpProviderData $data
-   * @param string           $encryptionKey
    *
    * @return int
    * @throws InvalidDataException
    * @throws \Exception
    */
-  public function create(SmtpProviderData $data, $encryptionKey)
+  public function create(SmtpProviderData $data)
   {
-    if($encryptionKey)
+    if($data->validate())
     {
-      if($data->validate())
-      {
-        $encrypter      = new Encrypter($encryptionKey);
-        $data->username = $encrypter->encrypt($data->username);
-        $data->password = $encrypter->encrypt($data->password);
-        $id             = CmeDatabase::conn()
-          ->table($this->_tableName)
-          ->insertGetId(
-            $data->toArray()
-          );
+      $id             = CmeDatabase::conn()
+        ->table($this->_tableName)
+        ->insertGetId(
+          $data->toArray()
+        );
 
-        return $id;
-      }
-      else
-      {
-        throw new InvalidDataException();
-      }
+      return $id;
     }
     else
     {
-      throw new \Exception(
-        "Encryption key is required to store SMTP Provider information"
-      );
+      throw new InvalidDataException();
     }
   }
 

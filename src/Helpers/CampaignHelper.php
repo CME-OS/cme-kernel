@@ -13,7 +13,6 @@ use CmeData\CampaignData;
 use CmeKernel\Core\CmeCampaign;
 use CmeKernel\Core\CmeDatabase;
 use CmeKernel\Core\CmeKernel;
-use Illuminate\Support\Facades\Log;
 
 class CampaignHelper
 {
@@ -52,7 +51,7 @@ class CampaignHelper
           }
           catch(\Exception $e)
           {
-            Log::error($e->getMessage());
+            error_log($e->getMessage());
           }
         }
         $built = true;

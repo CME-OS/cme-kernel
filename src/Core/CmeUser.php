@@ -7,7 +7,6 @@ namespace CmeKernel\Core;
 
 use CmeData\UserData;
 use CmeKernel\Exceptions\InvalidDataException;
-use Illuminate\Hashing\BcryptHasher;
 
 class CmeUser
 {
@@ -104,7 +103,6 @@ class CmeUser
     $data->active    = 1;
     if($data->validate())
     {
-      $data->password = (new BcryptHasher())->make($data->password);
       $id             = CmeDatabase::conn()
         ->table($this->_tableName)
         ->insertGetId($data->toArray());
