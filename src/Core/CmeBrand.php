@@ -52,7 +52,7 @@ class CmeBrand
       $data = false;
       if($brand)
       {
-        $data = BrandData::hydrate(head($brand));
+        $data = BrandData::hydrate($brand->first());
       }
       return $data;
     }

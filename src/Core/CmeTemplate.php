@@ -51,7 +51,7 @@ class CmeTemplate
       $data = false;
       if($template)
       {
-        $data = TemplateData::hydrate(head($template));
+        $data = TemplateData::hydrate($template->first());
       }
       return $data;
     }

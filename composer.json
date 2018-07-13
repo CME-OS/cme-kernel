@@ -13,7 +13,7 @@
     "php":                   ">=5.4.0",
     "illuminate/database":   "5.6.*",
     "garoevans/php-enum":    "1.2.0",
-    "cme/cme-data":          "1.0.1"
+    "cme/cme-data":          "dev-master"
   },
   "autoload":    {
     "psr-4": {

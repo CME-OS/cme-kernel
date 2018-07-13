@@ -58,7 +58,7 @@ class CmeCampaign
       $data = false;
       if($campaign)
       {
-        $data    = CampaignData::hydrate(head($campaign));
+        $data    = CampaignData::hydrate($campaign->first());
         $filters = json_decode($data->filters);
         if($filters)
         {
@@ -149,7 +149,7 @@ class CmeCampaign
   {
     return CmeDatabase::conn()->table($this->_tableName)
       ->whereNull('deleted_at')
-      ->orderBy('id', 'asc')->lists($field, 'id');
+      ->orderBy('id', 'asc')->pluck($field, 'id');
   }
 
   /**

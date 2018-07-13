@@ -52,7 +52,7 @@ class CmeSmtpProvider
       $data = false;
       if($provider)
       {
-        $data = SmtpProviderData::hydrate(head($provider));
+        $data = SmtpProviderData::hydrate($provider->first());
       }
       return $data;
     }
@@ -94,7 +94,6 @@ class CmeSmtpProvider
    *
    * @return int
    * @throws InvalidDataException
-   * @throws \Exception
    */
   public function create(SmtpProviderData $data)
   {
@@ -116,16 +115,12 @@ class CmeSmtpProvider
 
   /**
    * @param SmtpProviderData $data
-   * @param string           $encryptionKey
    *
    * @return bool
    * @throws InvalidDataException
-   * @throws \Exception
    */
-  public function update(SmtpProviderData $data, $encryptionKey)
+  public function update(SmtpProviderData $data)
   {
-    if($encryptionKey)
-    {
       if($data->password == "")
       {
         //we set password to null here so it does not get included
@@ -135,9 +130,6 @@ class CmeSmtpProvider
 
       if($data->validate())
       {
-        $encrypter      = new Encrypter($encryptionKey);
-        $data->password = $encrypter->encrypt($data->password);
-        $data->username = $encrypter->encrypt($data->username);
 
         CmeDatabase::conn()->table($this->_tableName)
           ->where('id', '=', $data->id)
@@ -149,13 +141,6 @@ class CmeSmtpProvider
       {
         throw new InvalidDataException();
       }
-    }
-    else
-    {
-      throw new \Exception(
-        "Encryption key is required to store SMTP Provider information"
-      );
-    }
   }
 
   /**

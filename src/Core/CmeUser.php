@@ -51,7 +51,7 @@ class CmeUser
       $data = false;
       if($user)
       {
-        $data = UserData::hydrate(head($user));
+        $data = UserData::hydrate($user->first());
       }
       return $data;
     }

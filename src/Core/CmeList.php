@@ -59,7 +59,7 @@ class CmeList
       $data = false;
       if($list)
       {
-        $data      = ListData::hydrate(head($list));
+        $data      = ListData::hydrate($list->first());
         $tableName = ListHelper::getTable($data->id);
         $size      = 0;
         //check if list table exists/
@@ -100,7 +100,7 @@ class CmeList
     {
       $list      = ListData::hydrate($row);
       $size      = 0;
-      $tableName = ListHelper::getTable($row['id']);
+      $tableName = ListHelper::getTable($row->id);
       if(CmeDatabase::schema()->hasTable($tableName))
       {
         $size = CmeDatabase::conn()
